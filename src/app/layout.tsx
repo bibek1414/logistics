@@ -35,19 +35,14 @@ export default function RootLayout({
       >
         <AuthProvider>
           <QueryProvider>
+            <Suspense fallback={null}>
+              <TopLoader />
+            </Suspense>
             <Header />
             <main className="min-h-screen">{children}</main>
             <Footer />
           </QueryProvider>
         </AuthProvider>
-        <QueryProvider>
-          <Suspense fallback={null}>
-            <TopLoader />
-          </Suspense>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </QueryProvider>
       </body>
     </html>
   );
