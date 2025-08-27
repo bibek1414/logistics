@@ -1,5 +1,5 @@
-import ShipmentTrackingLanding from "@/components/hero-section/shipment-tracking-landing";
+import { TrackingLanding } from "@/components/hero-section/tracking-landing";
 
 export default function Home() {
-  return <ShipmentTrackingLanding />;
+  return <TrackingLanding />;
 }
