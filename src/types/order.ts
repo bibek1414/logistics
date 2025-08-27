@@ -19,6 +19,34 @@ export interface SalesPerson {
   factory: string;
 }
 
+export interface User {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  role: string;
+  franchise: string | null;
+}
+
+export interface OrderChangeLog {
+  id: number;
+  user: User;
+  old_status: string;
+  new_status: string;
+  comment: string | null;
+  changed_at: string;
+  order: number;
+}
+
+export interface OrderComment {
+  id: number;
+  user: User;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  order: number;
+}
+
 export interface TrackingEvent {
   date: string;
   activity: string;
@@ -55,6 +83,16 @@ export interface OrderData {
   dash_location_name: string | null;
   dash_tracking_code: string | null;
   tracking_history?: TrackingEvent[];
+  // Additional fields from the full response
+  order_change_log?: OrderChangeLog[];
+  order_comment?: OrderComment[];
+}
+
+// Main response structure that matches your JSON
+export interface OrderTrackingResponse {
+  order: OrderData;
+  order_change_log: OrderChangeLog[];
+  order_comment: OrderComment[];
 }
 
 export interface ApiResponse<T = unknown> {

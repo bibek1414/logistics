@@ -1,4 +1,4 @@
-import { ApiResponse, OrderData } from "../types/order";
+import { ApiResponse, OrderData, OrderTrackingResponse } from "../types/order";
 
 export class OrderTrackingAPI {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -28,10 +28,17 @@ export class OrderTrackingAPI {
         );
       }
 
-      const data: OrderData = await response.json();
+      // Parse the full response structure
+      const responseData: OrderTrackingResponse = await response.json();
+
+      const orderData: OrderData = {
+        ...responseData.order,
+        order_change_log: responseData.order_change_log,
+        order_comment: responseData.order_comment,
+      };
 
       return {
-        data,
+        data: orderData,
         success: true,
       };
     } catch (error) {
