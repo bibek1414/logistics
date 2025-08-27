@@ -80,7 +80,7 @@ const Footer = () => {
                       <Button
                         onClick={handleTrack}
                         disabled={!trackingNumber.trim()}
-                        className="bg-destructive hover:bg-destructive/90"
+                        className="bg-primary hover:bg-primary/90"
                       >
                         <Search className="w-4 h-4 mr-2" />
                         TRACK ORDER

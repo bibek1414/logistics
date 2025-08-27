@@ -127,9 +127,11 @@ export const TrackingLanding: React.FC<TrackingLandingProps> = ({
                   Need help finding your tracking number?
                 </h4>
                 <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                  <p>• Order codes start with &apos;ORD-&apos; (e.g., ORD-BF2DF613)</p>
+                  <p>
+                    • Order codes start with &apos;ORD-&apos; (e.g.,
+                    ORD-BF2DF613)
+                  </p>
                   <p>• Tracking numbers are provided by the delivery service</p>
-                  <p>• Check your order confirmation email or SMS</p>
                 </div>
               </div>
             </CardContent>
