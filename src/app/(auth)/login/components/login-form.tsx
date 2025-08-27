@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginFormData, loginSchema } from "./login.schema";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -22,11 +25,13 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
-      console.log("Signin data:", data);
-      router.push("/");
+      await login(data);
+      router.push("/dashboard");
     } catch (error) {
       console.error("Signin error:", error);
+      setErrorMessage("Invalid phone number or password.");
     } finally {
       setIsLoading(false);
     }
@@ -43,6 +48,11 @@ export function LoginForm() {
         </CardHeader>
         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <div className="space-y-4 sm:space-y-6">
+            {errorMessage && (
+              <p className="text-sm text-red-600" role="alert">
+                {errorMessage}
+              </p>
+            )}
             <div className="space-y-2">
               <Label
                 htmlFor="phoneNumber"
