@@ -1,20 +1,60 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Mail,
+  Facebook,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Search,
+} from "lucide-react";
 
 const Footer = () => {
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleTrack = () => {
+    setError(null);
+
+    if (!trackingNumber.trim()) {
+      setError("Please enter a tracking number");
+      return;
+    }
+
+    try {
+      // Navigate to the tracking page
+      router.push(`/track-order/${encodeURIComponent(trackingNumber.trim())}`);
+
+      // Clear the input after successful navigation
+      setTrackingNumber("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && trackingNumber.trim()) {
+      handleTrack();
+    }
+  };
+
   return (
-    <footer className="bg-secondary text-foreground ">
+    <footer className="bg-secondary text-foreground">
       <div className="max-w-7xl mx-auto">
-        {/* Track Parcel Section */}
-        <div className=" py-8 ">
+        {/* Track Parcel Section - Centered */}
+        <div className="py-8">
           <div className="container mx-auto px-4">
             <Card className="bg-muted border-primary/30">
-              <CardContent className="p-3">
-                <div className="flex flex-col md:flex-row items-center gap-20">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-background rounded-lg">
                       <Mail className="h-8 w-8 text-primary" />
@@ -28,14 +68,30 @@ const Footer = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-1 max-w-md gap-2">
-                    <Input
-                      placeholder="Tracking Code"
-                      className="bg-background"
-                    />
-                    <Button className="bg-destructive hover:bg-destructive/90">
-                      TRACK ORDER
-                    </Button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-1 max-w-md gap-2">
+                      <Input
+                        placeholder="Tracking Code"
+                        value={trackingNumber}
+                        onChange={(e) => setTrackingNumber(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        className="bg-background"
+                      />
+                      <Button
+                        onClick={handleTrack}
+                        disabled={!trackingNumber.trim()}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        <Search className="w-4 h-4 mr-2" />
+                        TRACK ORDER
+                      </Button>
+                    </div>
+                    {/* Error Display */}
+                    {error && (
+                      <Alert variant="destructive" className="max-w-md">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -55,7 +111,7 @@ const Footer = () => {
                     alt="YDM Logistics"
                     width={120}
                     height={40}
-                    className="h-16 w-auto "
+                    className="h-16 w-auto"
                   />
                 </div>
                 <p className="text-muted-foreground text-sm">YDM Logistics</p>

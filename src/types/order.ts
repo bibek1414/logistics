@@ -57,7 +57,7 @@ export interface OrderData {
   tracking_history?: TrackingEvent[];
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   success: boolean;
   message?: string;

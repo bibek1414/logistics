@@ -9,7 +9,7 @@ export class OrderTrackingAPI {
   static async trackAny(trackingCode: string): Promise<ApiResponse<OrderData>> {
     try {
       const response = await fetch(
-        `${this.baseURL}/track-order/?order_code=${encodeURIComponent(
+        `${this.baseURL}/api/track-order/?order_code=${encodeURIComponent(
           trackingCode
         )}`,
         {

@@ -6,6 +6,8 @@ import Footer from "@/components/layout/footer/footer";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/context/AuthContext";
 
+import { Suspense } from "react";
+import TopLoader from "@/components/ui/top-loader";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -38,6 +40,14 @@ export default function RootLayout({
             <Footer />
           </QueryProvider>
         </AuthProvider>
+        <QueryProvider>
+          <Suspense fallback={null}>
+            <TopLoader />
+          </Suspense>
+          <Header />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );
