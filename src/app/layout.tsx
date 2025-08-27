@@ -4,7 +4,8 @@ import "./globals.css";
 import Header from "@/components/layout/navbar/header";
 import Footer from "@/components/layout/footer/footer";
 import { QueryProvider } from "@/providers/query-provider";
-
+import { Suspense } from "react";
+import TopLoader from "@/components/ui/top-loader";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -31,6 +32,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
+          <Suspense fallback={null}>
+            <TopLoader />
+          </Suspense>
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />

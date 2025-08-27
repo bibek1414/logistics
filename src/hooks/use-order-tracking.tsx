@@ -1,12 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrderTrackingAPI } from "@/services/order-tracking";
+import { OrderData } from "@/types/order";
 
 export const useOrderTracking = (orderCode?: string) => {
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
-    data: orderData,
+    data: response,
     isLoading,
     error,
     refetch,
@@ -20,28 +20,35 @@ export const useOrderTracking = (orderCode?: string) => {
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const trackOrder = (trackingCode: string) => {
+  // Validation utility - no navigation logic
+  const validateTrackingCode = (trackingCode: string) => {
     if (!trackingCode.trim()) {
       throw new Error("Please enter a tracking number");
     }
-
-    // Navigate to the tracking page with the order code
-    router.push(`/track-order/${encodeURIComponent(trackingCode.trim())}`);
+    return trackingCode.trim();
   };
 
   const refreshOrder = () => {
     refetch();
   };
 
+  const clearTracking = () => {
+    queryClient.removeQueries({
+      queryKey: ["order-tracking"],
+    });
+  };
+
   return {
-    orderData: orderData?.data,
+    orderData: (response?.success ? response.data : null) as OrderData | null,
     isLoading,
-    error:
-      error?.message ||
-      (orderData && !orderData.success ? orderData.message : null),
-    hasError: !!error || (orderData && !orderData.success),
-    hasData: orderData?.success && !!orderData.data?.id,
-    trackOrder,
+    error: (error?.message ||
+      (response && !response.success ? response.message : null)) as
+      | string
+      | null,
+    hasError: !!error || (response && !response.success),
+    hasData: response?.success && !!response.data?.id,
+    validateTrackingCode, // Utility function instead of navigation
     refreshOrder,
+    clearTracking,
   };
 };

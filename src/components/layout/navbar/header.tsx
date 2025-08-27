@@ -1,14 +1,28 @@
 "use client";
-
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <header className=" bg-background border-b border-border">
-      <div className=" max-w-7xl mx-auto   px-4 py-3">
+    <header className="bg-background border-b border-border sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <nav className="flex items-center justify-between">
           {/* Logo Section */}
           <div className="flex items-center">
@@ -18,12 +32,12 @@ const Header = () => {
                 alt="YDM Logistics"
                 width={120}
                 height={120}
-                className="h-16 w-auto"
+                className="h-12 sm:h-16 w-auto"
               />
             </Link>
           </div>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/"
@@ -42,11 +56,49 @@ const Header = () => {
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu - Sheet Component */}
           <div className="md:hidden">
-            <Button variant="ghost" size="sm">
-              <Menu className="h-6 w-6" />
-            </Button>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                </SheetHeader>
+                <div>
+                  {/* Navigation Links */}
+                  <div className="space-y-4">
+                    <Link
+                      href="/"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      href="/about"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      About Us
+                    </Link>
+                    <Button
+                      asChild
+                      variant="default"
+                      className="w-1/2"
+                      size="lg"
+                    >
+                      <Link href="/quote" onClick={closeMobileMenu}>
+                        Request a Quote
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </nav>
       </div>

@@ -1,11 +1,15 @@
-import { OrderTrackingApp } from "@/components/hero-section/order-tracking";
+"use client";
 import { useParams } from "next/navigation";
+import { OrderTrackingApp } from "@/components/orders/order-tracking";
 
-export default function TrackSpecificOrderPage() {
+export default function TrackOrderWithCodePage() {
   const params = useParams();
   const orderCode = params?.orderCode as string;
 
   return (
-    <OrderTrackingApp initialView="details" initialOrderCode={orderCode} />
+    <OrderTrackingApp
+      initialView="details"
+      initialOrderCode={decodeURIComponent(orderCode)}
+    />
   );
 }
