@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrderData } from "@/types/order";
-
+import { OrderCommentsSection } from "./order-comment/order-comment";
 interface OrderDetailsProps {
   orderData: OrderData | null;
   isLoading: boolean;
@@ -328,7 +328,12 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                 </div>
               </div>
             )}
-
+            <div className="mb-8">
+              <OrderCommentsSection
+                orderId={orderData.id}
+                orderCode={orderData.order_code}
+              />
+            </div>
             {/* Order Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Order Information */}
