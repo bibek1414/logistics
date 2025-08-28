@@ -1,8 +1,20 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDashboardStats } from "@/hooks/use-dashboard";
 
-export function StatusCards() {
+export function StatusCards({ id }: { id: number }) {
+  const { stats, isLoading: isLoadingStats } = useDashboardStats(id);
+
+  if (isLoadingStats) {
+    return <div>Loading...</div>;
+  }
+
+  // Helper function to format amount
+  const formatAmount = (amount: number) => {
+    return amount.toLocaleString();
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {/* Order Processing Card */}
@@ -12,32 +24,57 @@ export function StatusCards() {
             ORDER PROCESSING
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 px-4 pb-4">
+        <CardContent className="space-y-2">
           <div className="grid grid-cols-3 gap-2 text-xs font-medium opacity-90">
             <div>STATUS</div>
             <div>NOS</div>
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Order Placed</div>
-              <div>0</div>
-              <div>0</div>
+              <div>
+                {stats?.data?.order_processing?.["Order Placed"]?.nos || 0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_processing?.["Order Placed"]?.amount || 0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Order Picked</div>
-              <div>0</div>
-              <div>0</div>
+              <div>
+                {stats?.data?.order_processing?.["Order Picked"]?.nos || 0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_processing?.["Order Picked"]?.amount || 0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Order Verified</div>
-              <div>0</div>
-              <div>0</div>
+              <div>
+                {stats?.data?.order_processing?.["Order Verified"]?.nos || 0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_processing?.["Order Verified"]?.amount || 0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1 font-medium">
+            <div className="grid grid-cols-3 gap-2 font-medium">
               <div className="text-xs">Order Processing</div>
-              <div>51</div>
-              <div>51</div>
+              <div>
+                {stats?.data?.order_processing?.["Order Processing"]?.nos || 0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_processing?.["Order Processing"]?.amount ||
+                    0
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -50,27 +87,48 @@ export function StatusCards() {
             ORDER DISPATCHED
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 px-4 pb-4">
+        <CardContent className="space-y-2">
           <div className="grid grid-cols-3 gap-2 text-xs font-medium opacity-90">
             <div>STATUS</div>
             <div>NOS</div>
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Received At Branch</div>
-              <div>5</div>
-              <div>11,550</div>
+              <div>
+                {stats?.data?.order_dispatched?.["Received At Branch"]?.nos ||
+                  0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_dispatched?.["Received At Branch"]
+                    ?.amount || 0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Out For Delivery</div>
-              <div>40</div>
-              <div>110,470</div>
+              <div>
+                {stats?.data?.order_dispatched?.["Out For Delivery"]?.nos || 0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_dispatched?.["Out For Delivery"]?.amount ||
+                    0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Rescheduled</div>
-              <div>47</div>
-              <div>162,540</div>
+              <div>
+                {stats?.data?.order_dispatched?.["Rescheduled"]?.nos || 0}
+              </div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_dispatched?.["Rescheduled"]?.amount || 0
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -83,27 +141,39 @@ export function StatusCards() {
             ORDER STATUS
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 px-4 pb-4">
+        <CardContent className="space-y-2">
           <div className="grid grid-cols-3 gap-2 text-xs font-medium opacity-90">
             <div>STATUS</div>
             <div>NOS</div>
             <div>AMOUNT</div>
           </div>
           <div className="space-y-1.5 text-sm">
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Delivered</div>
-              <div>337</div>
-              <div>972,110</div>
+              <div>{stats?.data?.order_status?.["Delivered"]?.nos || 0}</div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_status?.["Delivered"]?.amount || 0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Cancelled</div>
-              <div>6</div>
-              <div>16,550</div>
+              <div>{stats?.data?.order_status?.["Cancelled"]?.nos || 0}</div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_status?.["Cancelled"]?.amount || 0
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 py-1">
+            <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Pending RTV</div>
-              <div>5</div>
-              <div>14,200</div>
+              <div>{stats?.data?.order_status?.["Pending RTV"]?.nos || 0}</div>
+              <div>
+                {formatAmount(
+                  stats?.data?.order_status?.["Pending RTV"]?.amount || 0
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
