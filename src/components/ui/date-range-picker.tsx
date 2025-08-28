@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import * as React from "react";
+import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
 
 // Local lightweight DateRange type to avoid importing from react-day-picker types
 type DateRange = {
@@ -40,22 +41,28 @@ export default function DateRangePicker({
   }, [value]);
 
   // Handle date changes
-  const handleDateChange = (newDate: DateRange | undefined) => {
-    setDate(newDate);
+  const handleDateChange = (newDate: ReactDayPickerDateRange | undefined) => {
+    const convertedDate = newDate
+      ? {
+          from: newDate.from,
+          to: newDate.to,
+        }
+      : undefined;
+
+    setDate(convertedDate);
     if (onChange) {
-      onChange(newDate);
+      onChange(convertedDate);
     }
   };
 
-  // Clear the date range
-  // const handleClear = (e: React.MouseEvent) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  //   setDate(undefined);
-  //   if (onChange) {
-  //     onChange(undefined);
-  //   }
-  // };
+  // Convert local DateRange to react-day-picker DateRange for the Calendar component
+  const calendarDate: ReactDayPickerDateRange | undefined =
+    date && date.from
+      ? {
+          from: date.from,
+          to: date.to,
+        }
+      : undefined;
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -88,7 +95,7 @@ export default function DateRangePicker({
           <Calendar
             mode="range"
             defaultMonth={date?.from}
-            selected={date}
+            selected={calendarDate}
             onSelect={handleDateChange}
             numberOfMonths={2}
           />
