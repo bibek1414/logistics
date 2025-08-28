@@ -80,6 +80,9 @@ const Header = () => {
               >
                 Dashboard
               </Link>
+              <Button asChild variant="default">
+                <Link href="/register">Register</Link>
+              </Button>
               <Button
                 variant="destructive"
                 onClick={() => logout()}
@@ -156,6 +159,11 @@ const Header = () => {
                     >
                       Dashboard
                     </Link>
+                    <Button asChild variant="default" className="w-full">
+                      <Link href="/register" onClick={closeMobileMenu}>
+                        Register
+                      </Link>
+                    </Button>
                     <Button
                       variant="destructive"
                       className="w-full"
