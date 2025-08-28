@@ -33,9 +33,8 @@ import {
 } from "@/components/ui/dialog";
 import { Search, Edit, Trash2, Loader2, UserPlus } from "lucide-react";
 import { useUsers, useDeleteUser } from "@/hooks/use-users";
-import { User, UpdateUserRequest } from "@/types/user";
-import RegisterForm from "./register-form";
-import EditUserForm from "./edit-user-form";
+import { User } from "@/types/user";
+import UserForm from "./user-form";
 
 // Type for Badge variant
 type BadgeVariant = "default" | "secondary" | "outline" | "destructive";
@@ -87,6 +86,10 @@ const RegisterList = () => {
   const handleEditDialogClose = () => {
     setIsEditDialogOpen(false);
     setUserToEdit(null);
+  };
+
+  const handleCreateDialogClose = () => {
+    setIsCreateDialogOpen(false);
   };
 
   const getRoleBadgeVariant = (role: string): BadgeVariant => {
@@ -151,6 +154,7 @@ const RegisterList = () => {
           />
         </div>
 
+        {/* Create User Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
@@ -165,23 +169,27 @@ const RegisterList = () => {
                 Fill out the form below to register a new user
               </DialogDescription>
             </DialogHeader>
-            <RegisterForm onUserCreated={handleUserCreated} />
+            <UserForm
+              onUserSaved={handleUserCreated}
+              onCancel={handleCreateDialogClose}
+            />
           </DialogContent>
         </Dialog>
 
         {/* Edit User Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogClose}>
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
-                Update the user information below
+                Update the user information below. All fields including phone
+                number can be modified.
               </DialogDescription>
             </DialogHeader>
             {userToEdit && (
-              <EditUserForm
+              <UserForm
                 user={userToEdit}
-                onUserUpdated={handleUserUpdated}
+                onUserSaved={handleUserUpdated}
                 onCancel={handleEditDialogClose}
               />
             )}
@@ -204,7 +212,7 @@ const RegisterList = () => {
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   {searchTerm
                     ? "No users found matching your search."
                     : "No users registered yet."}
@@ -234,6 +242,7 @@ const RegisterList = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(user)}
+                        title="Edit user"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -244,6 +253,7 @@ const RegisterList = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedUser(user)}
+                            title="Delete user"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

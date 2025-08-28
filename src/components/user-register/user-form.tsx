@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -20,36 +20,84 @@ import {
   CreateUserFormData,
   userRoles,
 } from "@/schemas/user";
-import { UserRole } from "@/types/user";
-import { useCreateUser } from "@/hooks/use-users";
+import { UserRole, User } from "@/types/user";
+import { useCreateUser, useUpdateUser } from "@/hooks/use-users";
 
-interface RegisterFormProps {
-  onUserCreated?: () => void;
+interface UserFormProps {
+  user?: User; // If provided, form is in edit mode
+  onUserSaved?: () => void; // Called after successful create/update
+  onCancel?: () => void; // Called when cancel is clicked
 }
 
-const RegisterForm = ({ onUserCreated }: RegisterFormProps) => {
+const UserForm = ({ user, onUserSaved, onCancel }: UserFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
+  const isEditMode = !!user;
+
   const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     reset,
     setValue,
     watch,
   } = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserSchema),
+    defaultValues: isEditMode
+      ? {
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email || "",
+          phone_number: user.phone_number,
+          role: user.role,
+          address: user.address || "",
+          password: "", // Always empty for security
+        }
+      : undefined,
   });
+
+  // Update form when user prop changes (useful for edit mode)
+  useEffect(() => {
+    if (isEditMode && user) {
+      setValue("first_name", user.first_name);
+      setValue("last_name", user.last_name);
+      setValue("email", user.email || "");
+      setValue("phone_number", user.phone_number);
+      setValue("role", user.role);
+      setValue("address", user.address || "");
+      setValue("password", ""); // Always reset password field
+    }
+  }, [user, setValue, isEditMode]);
 
   const onSubmit = async (data: CreateUserFormData) => {
     try {
-      await createUserMutation.mutateAsync(data);
+      if (isEditMode) {
+        // For edit mode, use original phone number as identifier
+        const updateData = {
+          ...data,
+          originalPhoneNumber: user.phone_number, // Keep track of original phone for backend
+        };
+        await updateUserMutation.mutateAsync({
+          phoneNumber: user.phone_number,
+          userData: updateData,
+        });
+      } else {
+        // Create mode
+        await createUserMutation.mutateAsync(data);
+      }
+
       reset();
-      onUserCreated?.();
+      onUserSaved?.();
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error(`${isEditMode ? "Update" : "Registration"} failed:`, error);
     }
+  };
+
+  const handleCancel = () => {
+    reset();
+    onCancel?.();
   };
 
   const roleLabels: Record<UserRole, string> = {
@@ -57,6 +105,9 @@ const RegisterForm = ({ onUserCreated }: RegisterFormProps) => {
     YDM_Rider: "YDM Rider",
     YDM_Operator: "YDM Operator",
   };
+
+  const isLoading =
+    createUserMutation.isPending || updateUserMutation.isPending;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -108,7 +159,7 @@ const RegisterForm = ({ onUserCreated }: RegisterFormProps) => {
           )}
         </div>
 
-        {/* Phone Number */}
+        {/* Phone Number - Editable in both create and edit modes */}
         <div className="space-y-2">
           <Label htmlFor="phone_number">Phone Number</Label>
           <Input
@@ -128,8 +179,10 @@ const RegisterForm = ({ onUserCreated }: RegisterFormProps) => {
         <div className="space-y-2">
           <Label htmlFor="role">Role</Label>
           <Select
-            onValueChange={(value) => setValue("role", value as UserRole)}
-            defaultValue=""
+            onValueChange={(value) =>
+              setValue("role", value as UserRole, { shouldDirty: true })
+            }
+            value={watch("role") || ""}
           >
             <SelectTrigger className={errors.role ? "border-destructive" : ""}>
               <SelectValue placeholder="Select a role" />
@@ -149,13 +202,22 @@ const RegisterForm = ({ onUserCreated }: RegisterFormProps) => {
 
         {/* Password */}
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">
+            Password
+            {isEditMode && (
+              <span className="text-xs text-muted-foreground ml-2">
+                (Leave empty to keep current password)
+              </span>
+            )}
+          </Label>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               {...register("password")}
-              placeholder="Enter password"
+              placeholder={
+                isEditMode ? "Enter new password (optional)" : "Enter password"
+              }
               className={errors.password ? "border-destructive pr-10" : "pr-10"}
             />
             <Button
@@ -195,25 +257,42 @@ const RegisterForm = ({ onUserCreated }: RegisterFormProps) => {
         )}
       </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-end pt-4">
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-3 pt-4">
+        {onCancel && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+        )}
         <Button
           type="submit"
-          disabled={createUserMutation.isPending}
+          disabled={isLoading || (!isDirty && isEditMode)}
           className="min-w-[120px]"
         >
-          {createUserMutation.isPending ? (
+          {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Registering...
+              {isEditMode ? "Updating..." : "Registering..."}
             </>
           ) : (
-            "Register User"
+            <>{isEditMode ? "Update User" : "Register User"}</>
           )}
         </Button>
       </div>
+
+      {/* Show unsaved changes indicator */}
+      {isEditMode && isDirty && (
+        <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
+          You have unsaved changes
+        </div>
+      )}
     </form>
   );
 };
 
-export default RegisterForm;
+export default UserForm;
