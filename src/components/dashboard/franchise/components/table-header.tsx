@@ -36,6 +36,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
+import { useRiders } from "@/hooks/use-riders";
 
 interface Logistic {
   id: number;
@@ -43,11 +44,11 @@ interface Logistic {
   phone_number: string | null;
 }
 
-interface SalesPerson {
-  id: number;
-  first_name: string;
-  last_name: string;
-}
+// interface SalesPerson {
+//   id: number;
+//   first_name: string;
+//   last_name: string;
+// }
 
 interface DateRangeLike {
   from?: Date;
@@ -92,6 +93,7 @@ interface TableHeaderProps {
   sales: SaleItem[];
   salesperson: string;
   setSalesperson: (value: string) => void;
+  selectedCount?: number;
 }
 
 export function TableHeader({
@@ -121,61 +123,11 @@ export function TableHeader({
   sales,
   salesperson,
   setSalesperson,
+  selectedCount = 0,
 }: TableHeaderProps) {
-  const [logistics, setLogistics] = useState<Logistic[]>([]);
-  const [salespersons, setSalespersons] = useState<SalesPerson[]>([]);
-  const { user } = useAuth();
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [summaryDate, setSummaryDate] = useState<Date | undefined>(undefined);
   const [isExportingSummary, setIsExportingSummary] = useState(false);
-
-  // Fetch logistics data on component mount - only for Packaging role
-  useEffect(() => {
-    const fetchLogistics = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const resp = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/logistics/`,
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : "",
-            },
-          }
-        );
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data: Logistic[] = await resp.json();
-        setLogistics(data);
-      } catch (error) {
-        console.error("Error fetching logistics:", error);
-      }
-    };
-
-    fetchLogistics();
-  }, [user]);
-
-  // Fetch salespersons data on component mount
-  useEffect(() => {
-    const fetchSalespersons = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        const resp = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/account/salespersons/`,
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : "",
-            },
-          }
-        );
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data: SalesPerson[] = await resp.json();
-        setSalespersons(data);
-      } catch (error) {
-        console.error("Error fetching salespersons:", error);
-      }
-    };
-
-    fetchSalespersons();
-  }, []);
 
   useEffect(() => {
     fetchSales(1);
@@ -185,9 +137,9 @@ export function TableHeader({
     setDeliveryType(value);
   };
 
-  const handleLogisticChange = (value: string) => {
-    setLogistic(value);
-  };
+  // const handleLogisticChange = (value: string) => {
+  //   setLogistic(value);
+  // };
 
   const handleClearFilters = () => {
     setSearchInput("");
@@ -200,25 +152,25 @@ export function TableHeader({
     fetchSales(1);
   };
 
-  const handleExportClick = () => {
-    const currentFilters: ExportFilters = {
-      searchInput,
-      paymentMethod,
-      orderStatus,
-      deliveryType,
-      logistic,
-      dateRange,
-    };
-    setShowExportModal(true, currentFilters);
-  };
+  // const handleExportClick = () => {
+  //   const currentFilters: ExportFilters = {
+  //     searchInput,
+  //     paymentMethod,
+  //     orderStatus,
+  //     deliveryType,
+  //     logistic,
+  //     dateRange,
+  //   };
+  //   setShowExportModal(true, currentFilters);
+  // };
 
-  const handlePrintOrders = async () => {
-    try {
-      await printOrders({ orders: sales });
-    } catch (error) {
-      console.error("Error printing orders:", error);
-    }
-  };
+  // const handlePrintOrders = async () => {
+  //   try {
+  //     await printOrders({ orders: sales });
+  //   } catch (error) {
+  //     console.error("Error printing orders:", error);
+  //   }
+  // };
 
   const handleExportSummary = async () => {
     if (!summaryDate) return;
@@ -251,13 +203,6 @@ export function TableHeader({
     } finally {
       setIsExportingSummary(false);
     }
-  };
-
-  // Get logistic name for display
-  const getLogisticName = (logisticId: string) => {
-    if (logisticId === "all") return "All Logistics";
-    const logisticItem = logistics.find((l) => l.id.toString() === logisticId);
-    return logisticItem ? logisticItem.name : "Unknown";
   };
 
   return (
@@ -309,14 +254,11 @@ export function TableHeader({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="text-xs text-gray-500 whitespace-nowrap min-w-0 truncate">
-          {resultsCount ? `${resultsCount} of ${salesCount} entries` : ""}
-          {logistic !== "all" && (
-            <span className="ml-2 text-blue-600 font-medium">
-              ({getLogisticName(logistic)})
-            </span>
-          )}
-        </div>
+        {selectedCount > 0 && (
+          <div className="flex items-center gap-2">
+            <AssignDialogTrigger selectedCount={selectedCount} />
+          </div>
+        )}
         {/* <div className="flex-1 flex justify-end min-w-0 gap-2">
           <>
             <Button
@@ -481,5 +423,111 @@ export function TableHeader({
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function AssignDialogTrigger({ selectedCount }: { selectedCount: number }) {
+  const [open, setOpen] = useState(false);
+  const { data: riders = [], isLoading } = useRiders();
+  const [search, setSearch] = useState("");
+  const [selectedRider, setSelectedRider] = useState<number | null>(null);
+
+  const filteredRiders = riders.filter((rider) => {
+    const term = search.toLowerCase();
+    return (
+      rider.first_name?.toLowerCase().includes(term) ||
+      rider.last_name?.toLowerCase().includes(term) ||
+      rider.email?.toLowerCase().includes(term) ||
+      rider.phone_number?.toLowerCase().includes(term)
+    );
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-1 whitespace-nowrap bg-primary text-white hover:bg-primary/80 px-2 h-8 min-w-0 hover:text-white cursor-pointer"
+        onClick={() => setOpen(true)}
+      >
+        Assign ({selectedCount})
+      </Button>
+
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Assign Selected Orders</DialogTitle>
+          <DialogDescription>
+            You have {selectedCount} selected{" "}
+            {selectedCount === 1 ? "order" : "orders"}. Choose a rider to
+            assign.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Search Field */}
+        <div className="mb-3">
+          <Input
+            type="text"
+            placeholder="Search rider..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-8"
+          />
+        </div>
+
+        {/* Riders List */}
+        <div className="max-h-[250px] overflow-y-auto border rounded p-2 space-y-2">
+          {isLoading ? (
+            <p className="text-sm text-gray-500">Loading riders...</p>
+          ) : filteredRiders.length === 0 ? (
+            <p className="text-sm text-gray-500">No riders found.</p>
+          ) : (
+            filteredRiders.map((rider) => (
+              <div
+                key={rider.id}
+                className={`flex items-center justify-between p-2 rounded cursor-pointer border ${
+                  selectedRider === rider.id
+                    ? "bg-primary/10 border-primary"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => setSelectedRider(rider.id)}
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm">
+                    {rider.first_name} {rider.last_name}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {rider.phone_number || "No phone"} •{" "}
+                    {rider.email || "No email"}
+                  </span>
+                </div>
+                <input
+                  type="radio"
+                  checked={selectedRider === rider.id}
+                  onChange={() => setSelectedRider(rider.id)}
+                />
+              </div>
+            ))
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              if (selectedRider) {
+                console.log("Assigning orders to rider:", selectedRider);
+                // TODO: call assign API here
+                setOpen(false);
+              }
+            }}
+            disabled={!selectedRider}
+          >
+            Assign
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
