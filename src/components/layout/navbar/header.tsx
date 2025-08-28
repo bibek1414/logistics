@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const Header = () => {
@@ -21,6 +21,24 @@ const Header = () => {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  const NavigationSkeleton = () => (
+    <div className="hidden md:flex items-center space-x-8">
+      <div className="h-5 w-12 bg-muted animate-pulse rounded"></div>
+      <div className="h-5 w-16 bg-muted animate-pulse rounded"></div>
+      <div className="h-9 w-28 bg-muted animate-pulse rounded"></div>
+      <div className="h-9 w-16 bg-muted animate-pulse rounded"></div>
+    </div>
+  );
+
+  const MobileNavigationSkeleton = () => (
+    <div className="space-y-4 mt-4">
+      <div className="h-12 w-full bg-muted animate-pulse rounded-md"></div>
+      <div className="h-12 w-full bg-muted animate-pulse rounded-md"></div>
+      <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+      <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+    </div>
+  );
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
@@ -40,42 +58,65 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            {!isLoading && user ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="text-foreground hover:text-primary transition-colors font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Button variant="destructive" onClick={() => logout()}>
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/"
-                  className="text-foreground hover:text-primary transition-colors font-medium"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/about"
-                  className="text-foreground hover:text-primary transition-colors font-medium"
-                >
-                  About Us
-                </Link>
-                <Button asChild variant="default">
-                  <Link href="/quote">Request a Quote</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/login">Login</Link>
-                </Button>
-              </>
-            )}
-          </div>
+          {isLoading ? (
+            <NavigationSkeleton />
+          ) : user ? (
+            <div className="hidden md:flex items-center space-x-8">
+              <Link
+                href="/"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                Home
+              </Link>
+              <Link
+                href="/about"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                About Us
+              </Link>
+              <Link
+                href="/dashboard"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                Dashboard
+              </Link>
+              <Button
+                variant="destructive"
+                onClick={() => logout()}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging out...
+                  </>
+                ) : (
+                  "Logout"
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center space-x-8">
+              <Link
+                href="/"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                Home
+              </Link>
+              <Link
+                href="/about"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                About Us
+              </Link>
+              <Button asChild variant="default">
+                <Link href="/quote">Request a Quote</Link>
+              </Button>
+              <Button asChild variant="outline" className="hover:bg-muted">
+                <Link href="/login">Login</Link>
+              </Button>
+            </div>
+          )}
 
           {/* Mobile Menu */}
           <div className="md:hidden">
@@ -89,56 +130,79 @@ const Header = () => {
                 <SheetHeader>
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </SheetHeader>
-                <div className="space-y-4 mt-4">
-                  {!isLoading && user ? (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        onClick={closeMobileMenu}
-                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                      >
-                        Dashboard
+
+                {isLoading ? (
+                  <MobileNavigationSkeleton />
+                ) : user ? (
+                  <div className="space-y-4 mt-4">
+                    <Link
+                      href="/"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      href="/about"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      Dashboard
+                    </Link>
+                    <Button
+                      variant="destructive"
+                      className="w-full"
+                      onClick={() => {
+                        logout();
+                        closeMobileMenu();
+                      }}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Logging out...
+                        </>
+                      ) : (
+                        "Logout"
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    <Link
+                      href="/"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      href="/about"
+                      onClick={closeMobileMenu}
+                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    >
+                      About Us
+                    </Link>
+                    <Button asChild variant="default" className="w-full">
+                      <Link href="/quote" onClick={closeMobileMenu}>
+                        Request a Quote
                       </Link>
-                      <Button
-                        variant="destructive"
-                        className="w-full"
-                        onClick={() => {
-                          logout();
-                          closeMobileMenu();
-                        }}
-                      >
-                        Logout
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/"
-                        onClick={closeMobileMenu}
-                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                      >
-                        Home
+                    </Button>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href="/login" onClick={closeMobileMenu}>
+                        Login
                       </Link>
-                      <Link
-                        href="/about"
-                        onClick={closeMobileMenu}
-                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                      >
-                        About Us
-                      </Link>
-                      <Button asChild variant="default" className="w-full">
-                        <Link href="/quote" onClick={closeMobileMenu}>
-                          Request a Quote
-                        </Link>
-                      </Button>
-                      <Button asChild variant="outline" className="w-full">
-                        <Link href="/login" onClick={closeMobileMenu}>
-                          Login
-                        </Link>
-                      </Button>
-                    </>
-                  )}
-                </div>
+                    </Button>
+                  </div>
+                )}
               </SheetContent>
             </Sheet>
           </div>

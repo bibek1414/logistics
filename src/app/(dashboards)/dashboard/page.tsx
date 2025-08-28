@@ -97,7 +97,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6 px-10">
       {/* Header Section */}
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">

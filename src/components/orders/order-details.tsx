@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Package,
@@ -35,6 +36,19 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
   onBack,
   onRefresh,
 }) => {
+  const router = useRouter();
+
+  // Use browser's back functionality instead of hardcoded navigation
+  const handleBack = () => {
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback to home if no history
+      router.push("/");
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const colors = {
       Pending: "bg-yellow-100 text-yellow-800",
@@ -96,12 +110,10 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
             <Alert variant="destructive">
               <AlertDescription>{error || "Order not found"}</AlertDescription>
             </Alert>
-            <Link href="/">
-              <Button className="w-full mt-4">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Search
-              </Button>
-            </Link>
+            <Button className="w-full mt-4" onClick={handleBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -129,12 +141,10 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            </Link>
+            <Button variant="outline" size="sm" onClick={handleBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
           </div>
           <Button variant="outline" onClick={onRefresh} size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
