@@ -16,11 +16,10 @@ export const useOrderTracking = (orderCode?: string) => {
     queryFn: () => OrderTrackingAPI.trackAny(orderCode!),
     enabled: !!orderCode,
     retry: 1,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always fresh data for comments
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Validation utility - no navigation logic
   const validateTrackingCode = (trackingCode: string) => {
     if (!trackingCode.trim()) {
       throw new Error("Please enter a tracking number");
@@ -40,14 +39,14 @@ export const useOrderTracking = (orderCode?: string) => {
 
   return {
     orderData: (response?.success ? response.data : null) as OrderData | null,
-    isLoading,
+    isLoading: isLoading || isRefetching,
     error: (error?.message ||
       (response && !response.success ? response.message : null)) as
       | string
       | null,
     hasError: !!error || (response && !response.success),
     hasData: response?.success && !!response.data?.id,
-    validateTrackingCode, // Utility function instead of navigation
+    validateTrackingCode,
     refreshOrder,
     clearTracking,
   };

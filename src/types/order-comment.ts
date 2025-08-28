@@ -1,21 +1,14 @@
-export interface OrderCommentUser {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  role: string;
-  franchise: string | null;
-  address: string;
-}
-
 export interface OrderComment {
   id: number;
   order: number;
-  user: OrderCommentUser;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    role: string;
+  };
   comment: string;
   created_at: string;
-  updated_at: string;
 }
 
 export interface CreateOrderCommentRequest {
@@ -23,9 +16,8 @@ export interface CreateOrderCommentRequest {
   comment: string;
 }
 
-export interface ApiResponse<T = unknown> {
+export interface ApiResponse<T> {
   data?: T;
-  success: boolean;
+  success?: boolean;
   message?: string;
-  error?: string;
 }

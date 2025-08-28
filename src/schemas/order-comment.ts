@@ -25,7 +25,7 @@ export const createOrderCommentRequestSchema = z.object({
   comment: z.string().min(1, "Comment cannot be empty"),
 });
 
-export const orderCommentsResponseSchema = z.array(orderCommentSchema);
-
 export type OrderComment = z.infer<typeof orderCommentSchema>;
-export type CreateOrderCommentRequest = z.infer<typeof createOrderCommentRequestSchema>;
+export type CreateOrderCommentRequest = z.infer<
+  typeof createOrderCommentRequestSchema
+>;

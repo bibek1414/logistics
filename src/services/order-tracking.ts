@@ -22,10 +22,7 @@ export class OrderTrackingAPI {
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `HTTP ${response.status}: ${errorText || "Failed to track order"}`
-        );
+        throw new Error(`  "Failed to track order"`);
       }
 
       // Parse the full response structure
