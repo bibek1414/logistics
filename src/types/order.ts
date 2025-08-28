@@ -83,12 +83,10 @@ export interface OrderData {
   dash_location_name: string | null;
   dash_tracking_code: string | null;
   tracking_history?: TrackingEvent[];
-  // Additional fields from the full response
   order_change_log?: OrderChangeLog[];
   order_comment?: OrderComment[];
 }
 
-// Main response structure that matches your JSON
 export interface OrderTrackingResponse {
   order: OrderData;
   order_change_log: OrderChangeLog[];
