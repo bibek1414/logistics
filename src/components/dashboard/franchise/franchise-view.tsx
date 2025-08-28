@@ -1,7 +1,7 @@
 "use client";
 
 import { useFranchise } from "@/hooks/use-franchises";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { useTableColumns } from "@/components/dashboard/franchise/hooks/use-table-columns";
 import { useTableData } from "@/components/dashboard/franchise/hooks/use-table-data";
 import { useTableFilters } from "@/components/dashboard/franchise/hooks/use-table-filters";
@@ -9,10 +9,11 @@ import { TableHeader } from "@/components/dashboard/franchise/components/table-h
 import { TableBody } from "@/components/dashboard/franchise/components/table-body";
 import { TablePagination } from "@/components/dashboard/franchise/components/table-pagination";
 import type { SaleItem } from "@/types/sales";
+import type { FranchiseFilters } from "@/services/franchise";
 
 export default function FranchiseView({ id }: { id: number }) {
-  const { franchise, isLoading, isError, error } = useFranchise(id);
   const tableRef = useRef<HTMLTableElement>(null);
+  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Local UI states
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,6 +29,75 @@ export default function FranchiseView({ id }: { id: number }) {
   const [selectedPaymentImage, setSelectedPaymentImage] = useState("");
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
 
+  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
+    useTableColumns();
+  const { sortField, sortDirection, handleSort, sortData, getValueByColumnId } =
+    useTableData();
+  const { applyFilters, dateRange, setDateRange } = useTableFilters();
+
+  // Build filters object for API call
+  const filters: FranchiseFilters = useMemo(() => {
+    const filterObj: FranchiseFilters = {
+      page: currentPage,
+      pageSize,
+    };
+
+    // Add search parameter if present
+    if (filterTerm) {
+      filterObj.search = filterTerm;
+    }
+
+    // Add filter parameters if not "all"
+    if (paymentMethod !== "all") {
+      filterObj.paymentMethod = paymentMethod;
+    }
+
+    if (orderStatus !== "all") {
+      filterObj.orderStatus = orderStatus;
+    }
+
+    if (deliveryType !== "all") {
+      filterObj.deliveryType = deliveryType;
+    }
+
+    if (logistic !== "all") {
+      filterObj.logistic = logistic;
+    }
+
+    if (salesperson !== "all") {
+      filterObj.salesperson = salesperson;
+    }
+
+    // Add date range parameters
+    if (dateRange?.[0]) {
+      const year = dateRange[0].getFullYear();
+      const month = String(dateRange[0].getMonth() + 1).padStart(2, "0");
+      const day = String(dateRange[0].getDate()).padStart(2, "0");
+      filterObj.startDate = `${year}-${month}-${day}`;
+    }
+
+    if (dateRange?.[1]) {
+      const year = dateRange[1].getFullYear();
+      const month = String(dateRange[1].getMonth() + 1).padStart(2, "0");
+      const day = String(dateRange[1].getDate()).padStart(2, "0");
+      filterObj.endDate = `${year}-${month}-${day}`;
+    }
+
+    return filterObj;
+  }, [
+    currentPage,
+    pageSize,
+    filterTerm,
+    paymentMethod,
+    orderStatus,
+    deliveryType,
+    logistic,
+    salesperson,
+    dateRange,
+  ]);
+
+  const { franchise, isLoading, isError, error } = useFranchise(id, filters);
+
   const statusView = isLoading ? (
     <div>Loading franchise...</div>
   ) : isError ? (
@@ -41,89 +111,65 @@ export default function FranchiseView({ id }: { id: number }) {
     [franchise]
   );
 
-  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
-    useTableColumns();
-  const { sortField, sortDirection, handleSort, sortData, getValueByColumnId } =
-    useTableData();
-  const { applyFilters, dateRange, setDateRange } = useTableFilters();
-
-  // Client-side search and filter
-  const filtered = useMemo(() => {
-    const term = (filterTerm || searchInput).toLowerCase();
-    let data = sales;
-    if (term) {
-      data = data.filter((s) =>
-        [
-          s.full_name,
-          s.city,
-          s.delivery_address,
-          s.phone_number,
-          s.alternate_phone_number || "",
-          s.order_status,
-          s.payment_method,
-          s.delivery_type,
-          s.dash_location_name || "",
-          s.dash_tracking_code || "",
-          s.sales_person?.first_name + " " + s.sales_person?.last_name,
-          s.order_products.map((op) => op.product.name).join(","),
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(term)
-      );
-    }
-    // simple dropdown filters
-    if (paymentMethod !== "all") {
-      data = data.filter((s) => s.payment_method === paymentMethod);
-    }
-    if (orderStatus !== "all") {
-      data = data.filter((s) => s.order_status === orderStatus);
-    }
-    if (deliveryType !== "all") {
-      data = data.filter((s) => s.delivery_type === deliveryType);
-    }
-    if (salesperson !== "all") {
-      data = data.filter((s) => String(s.sales_person?.id) === salesperson);
-    }
-    // extra packaging logistic chip filter (best-effort)
-    if (logistic !== "all") {
-      data = data.filter(
-        (s) => s.logistics === logistic || s.logistics_name === logistic
-      );
-    }
-    // date range filter using shared hook
-    data = applyFilters(data);
-    return data;
-  }, [
-    sales,
-    searchInput,
-    filterTerm,
-    paymentMethod,
-    orderStatus,
-    deliveryType,
-    logistic,
-    salesperson,
-    applyFilters,
-  ]);
-
-  const sorted = useMemo(
-    () => sortData(filtered, sortField, sortDirection),
-    [filtered, sortField, sortDirection, sortData]
+  // Handle search input change with debouncing
+  const handleSearchInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchInput(value);
+      clearTimeout(searchTimeout.current);
+      searchTimeout.current = setTimeout(() => {
+        if (value.length >= 3) {
+          // If search term is 3 or more characters, fetch from API
+          setFilterTerm(value);
+          setCurrentPage(1);
+        } else if (value.length === 0) {
+          // If search is cleared, reset to original data
+          setFilterTerm("");
+          setCurrentPage(1);
+        }
+      }, 300);
+    },
+    []
   );
 
-  const totalCount = sorted.length;
-  const hasNext = currentPage * pageSize < totalCount;
-  const paged = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return sorted.slice(start, start + pageSize);
-  }, [sorted, currentPage, pageSize]);
+  // Handle filter changes
+  const handleFilterChange = useCallback(
+    (filterType: string, value: string) => {
+      setCurrentPage(1); // Reset to first page when filters change
 
-  const fetchSales = (page: number) => setCurrentPage(page);
+      switch (filterType) {
+        case "paymentMethod":
+          setPaymentMethod(value);
+          break;
+        case "orderStatus":
+          setOrderStatus(value);
+          break;
+        case "deliveryType":
+          setDeliveryType(value);
+          break;
+        case "logistic":
+          setLogistic(value);
+          break;
+        case "salesperson":
+          setSalesperson(value);
+          break;
+      }
+    },
+    []
+  );
 
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
-    setCurrentPage(1);
-  };
+  // Handle date range changes
+  const handleDateRangeChange = useCallback(
+    (dr: { from?: Date | undefined; to?: Date | undefined } | undefined) => {
+      setCurrentPage(1); // Reset to first page when date range changes
+      setDateRange(dr ? [dr.from, dr.to] : [undefined, undefined]);
+    },
+    [setDateRange]
+  );
+
+  const fetchSales = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
 
   const handleStatusChange = (_saleId: string, _newStatus: string) => {
     // no-op for now; API wiring can be added later
@@ -142,8 +188,8 @@ export default function FranchiseView({ id }: { id: number }) {
             toggleColumnVisibility={toggleColumnVisibility}
             showAllColumns={showAllColumns}
             hideAllColumns={hideAllColumns}
-            salesCount={sales.length}
-            resultsCount={filtered.length}
+            salesCount={franchise?.count || 0}
+            resultsCount={sales.length}
             searchInput={searchInput}
             handleSearchInputChange={handleSearchInputChange}
             setSearchInput={setSearchInput}
@@ -153,22 +199,24 @@ export default function FranchiseView({ id }: { id: number }) {
             setShowFilterForm={() => {}}
             setShowExportModal={() => setShowExportModal(true)}
             paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
+            setPaymentMethod={(value) =>
+              handleFilterChange("paymentMethod", value)
+            }
             orderStatus={orderStatus}
-            setOrderStatus={setOrderStatus}
+            setOrderStatus={(value) => handleFilterChange("orderStatus", value)}
             deliveryType={deliveryType}
-            setDeliveryType={setDeliveryType}
+            setDeliveryType={(value) =>
+              handleFilterChange("deliveryType", value)
+            }
             logistic={logistic}
-            setLogistic={setLogistic}
+            setLogistic={(value) => handleFilterChange("logistic", value)}
             dateRange={
               dateRange ? { from: dateRange[0], to: dateRange[1] } : undefined
             }
-            setDateRange={(dr) =>
-              setDateRange(dr ? [dr.from, dr.to] : [undefined, undefined])
-            }
+            setDateRange={handleDateRangeChange}
             sales={sales}
             salesperson={salesperson}
-            setSalesperson={setSalesperson}
+            setSalesperson={(value) => handleFilterChange("salesperson", value)}
           />
 
           <div className="overflow-auto border rounded-md">
@@ -176,7 +224,7 @@ export default function FranchiseView({ id }: { id: number }) {
               tableRef={tableRef}
               columns={columns.map((c) => ({ ...c, visible: c.visible }))}
               isLoading={isLoading}
-              displayData={paged}
+              displayData={sales}
               currentPage={currentPage}
               pageSize={pageSize}
               getValueByColumnId={getValueByColumnId}
@@ -190,8 +238,8 @@ export default function FranchiseView({ id }: { id: number }) {
           <TablePagination
             currentPage={currentPage}
             pageSize={pageSize}
-            totalCount={totalCount}
-            hasNext={hasNext}
+            totalCount={franchise?.count || 0}
+            hasNext={!!franchise?.next}
             fetchSales={fetchSales}
           />
         </>
