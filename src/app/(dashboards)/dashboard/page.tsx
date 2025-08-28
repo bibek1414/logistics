@@ -1,6 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useFranchises } from "@/hooks/use-franchises";
 import {
   Card,
@@ -16,10 +18,16 @@ import { Building2 } from "lucide-react";
 
 export default function Dashboard() {
   const router = useRouter();
+  const pathname = usePathname();
+  const { user, isLoading, requireAuth } = useAuth();
+
+  useEffect(() => {
+    requireAuth(pathname);
+  }, [user, isLoading, pathname]);
 
   const {
     franchises: fetchedFranchises,
-    isLoading,
+    isLoading: isFranchiseLoading,
     isError,
     error,
     refetch,
@@ -30,7 +38,16 @@ export default function Dashboard() {
     router.push(`/dashboard/${franchiseId}`);
   };
 
-  if (isLoading || isRefetching) {
+  if (isLoading) {
+    return <p className="p-6">Checking authentication...</p>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  // Loading franchises
+  if (isFranchiseLoading || isRefetching) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex flex-col space-y-4">
@@ -59,6 +76,7 @@ export default function Dashboard() {
     );
   }
 
+  // Error state
   if (isError) {
     return (
       <div className="container mx-auto p-6 space-y-6">

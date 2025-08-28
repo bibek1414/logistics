@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -6,15 +7,16 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout, isLoading } = useAuth();
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -39,24 +41,43 @@ const Header = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-foreground hover:text-primary transition-colors font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              href="/about"
-              className="text-foreground hover:text-primary transition-colors font-medium"
-            >
-              About Us
-            </Link>
-            <Button asChild variant="default">
-              <Link href="/quote">Request a Quote</Link>
-            </Button>
+            {!isLoading && user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Button variant="destructive" onClick={() => logout()}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/about"
+                  className="text-foreground hover:text-primary transition-colors font-medium"
+                >
+                  About Us
+                </Link>
+                <Button asChild variant="default">
+                  <Link href="/quote">Request a Quote</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/login">Login</Link>
+                </Button>
+              </>
+            )}
           </div>
 
-          {/* Mobile Menu - Sheet Component */}
+          {/* Mobile Menu */}
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -68,34 +89,55 @@ const Header = () => {
                 <SheetHeader>
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </SheetHeader>
-                <div>
-                  {/* Navigation Links */}
-                  <div className="space-y-4">
-                    <Link
-                      href="/"
-                      onClick={closeMobileMenu}
-                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      href="/about"
-                      onClick={closeMobileMenu}
-                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                    >
-                      About Us
-                    </Link>
-                    <Button
-                      asChild
-                      variant="default"
-                      className="w-1/2"
-                      size="lg"
-                    >
-                      <Link href="/quote" onClick={closeMobileMenu}>
-                        Request a Quote
+                <div className="space-y-4 mt-4">
+                  {!isLoading && user ? (
+                    <>
+                      <Link
+                        href="/dashboard"
+                        onClick={closeMobileMenu}
+                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                      >
+                        Dashboard
                       </Link>
-                    </Button>
-                  </div>
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={() => {
+                          logout();
+                          closeMobileMenu();
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/"
+                        onClick={closeMobileMenu}
+                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                      >
+                        Home
+                      </Link>
+                      <Link
+                        href="/about"
+                        onClick={closeMobileMenu}
+                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                      >
+                        About Us
+                      </Link>
+                      <Button asChild variant="default" className="w-full">
+                        <Link href="/quote" onClick={closeMobileMenu}>
+                          Request a Quote
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href="/login" onClick={closeMobileMenu}>
+                          Login
+                        </Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
