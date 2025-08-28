@@ -8,6 +8,12 @@ import {
 
 const API_BASE_URL = siteConfig.apiBaseUrl;
 
+interface ApiErrorData {
+  response?: {
+    data?: Record<string, string | string[]> | string;
+  };
+}
+
 // Helper function to get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem("accessToken");
@@ -17,14 +23,32 @@ const getAuthHeaders = () => {
   };
 };
 
-// Helper function to handle auth errors
-const handleAuthError = (response: Response) => {
+// Simplified error handling
+const handleResponse = async (response: Response) => {
   if (response.status === 401) {
-    // Token might be expired, redirect to login
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     window.location.href = "/login";
+    return;
   }
+
+  if (!response.ok) {
+    let errorData: Record<string, string | string[]> | string = {};
+    try {
+      const text = await response.text();
+      if (text) {
+        errorData = JSON.parse(text);
+      }
+    } catch {
+      // If parsing fails, keep empty object
+    }
+
+    const error = new Error("API Error") as Error & ApiErrorData;
+    error.response = { data: errorData };
+    throw error;
+  }
+
+  return response;
 };
 
 // Helper to extract data from API response
@@ -45,14 +69,7 @@ export const getUsers = async (): Promise<User[]> => {
     headers: getAuthHeaders(),
   });
 
-  if (!response.ok) {
-    handleAuthError(response);
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to fetch users: ${response.status}`
-    );
-  }
-
+  await handleResponse(response);
   const data: ApiResponse<User[]> | User[] = await response.json();
   const extractedData = extractData<User[]>(data);
 
@@ -72,17 +89,9 @@ export const getUserByPhone = async (phoneNumber: string): Promise<User> => {
     }
   );
 
-  if (!response.ok) {
-    handleAuthError(response);
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to fetch user: ${response.status}`
-    );
-  }
-
+  await handleResponse(response);
   const data: ApiResponse<User> | User = await response.json();
-  const extractedData = extractData<User>(data);
-  return extractedData;
+  return extractData<User>(data);
 };
 
 export const createUser = async (
@@ -94,17 +103,9 @@ export const createUser = async (
     body: JSON.stringify(userData),
   });
 
-  if (!response.ok) {
-    handleAuthError(response);
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to create user: ${response.status}`
-    );
-  }
-
+  await handleResponse(response);
   const data: ApiResponse<User> | User = await response.json();
-  const extractedData = extractData<User>(data);
-  return extractedData;
+  return extractData<User>(data);
 };
 
 export const updateUser = async (
@@ -120,17 +121,9 @@ export const updateUser = async (
     }
   );
 
-  if (!response.ok) {
-    handleAuthError(response);
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to update user: ${response.status}`
-    );
-  }
-
+  await handleResponse(response);
   const data: ApiResponse<User> | User = await response.json();
-  const extractedData = extractData<User>(data);
-  return extractedData;
+  return extractData<User>(data);
 };
 
 export const deleteUser = async (phoneNumber: string): Promise<void> => {
@@ -142,11 +135,5 @@ export const deleteUser = async (phoneNumber: string): Promise<void> => {
     }
   );
 
-  if (!response.ok) {
-    handleAuthError(response);
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `Failed to delete user: ${response.status}`
-    );
-  }
+  await handleResponse(response);
 };

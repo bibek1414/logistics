@@ -7,7 +7,6 @@ import {
   deleteUser,
 } from "@/services/register";
 import { User, CreateUserRequest, UpdateUserRequest } from "@/types/user";
-import { toast } from "sonner";
 
 const USERS_QUERY_KEY = ["users"];
 
@@ -32,14 +31,8 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: (userData: CreateUserRequest) => createUser(userData),
-    onSuccess: (newUser) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      toast.success(
-        `User ${newUser.first_name} ${newUser.last_name} created successfully!`
-      );
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to create user: ${error.message}`);
     },
   });
 };
@@ -60,12 +53,6 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({
         queryKey: ["user", updatedUser.phone_number],
       });
-      toast.success(
-        `User ${updatedUser.first_name} ${updatedUser.last_name} updated successfully!`
-      );
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to update user: ${error.message}`);
     },
   });
 };
@@ -77,10 +64,6 @@ export const useDeleteUser = () => {
     mutationFn: (phoneNumber: string) => deleteUser(phoneNumber),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      toast.success("User deleted successfully!");
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to delete user: ${error.message}`);
     },
   });
 };

@@ -5,6 +5,7 @@ import Header from "@/components/layout/navbar/header";
 import Footer from "@/components/layout/footer/footer";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "sonner";
 
 import { Suspense } from "react";
 import TopLoader from "@/components/ui/top-loader";
@@ -41,6 +42,12 @@ export default function RootLayout({
             <Header />
             <main className="min-h-screen">{children}</main>
             <Footer />
+            <Toaster
+              position="bottom-right"
+              richColors
+              closeButton
+              duration={3000}
+            />
           </QueryProvider>
         </AuthProvider>
       </body>
