@@ -1,7 +1,7 @@
 "use client";
 import { Eye } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,8 @@ interface TableBodyProps {
   displayData: SaleItem[];
   currentPage: number;
   pageSize: number;
+  selectedIds: Set<string>;
+  onSelectionChange: (next: Set<string>) => void;
   getValueByColumnId: (
     sale: SaleItem,
     columnId: string
@@ -46,47 +48,16 @@ export function TableBody({
   displayData,
   currentPage,
   pageSize,
+  selectedIds,
+  onSelectionChange,
   getValueByColumnId,
   handleStatusChange,
   handleEdit,
   setSelectedPaymentImage,
   setShowPaymentImageModal,
 }: TableBodyProps) {
-  const [logistics, setLogistics] = useState<Logistics[]>([]);
-  const [isLoadingLogistics, setIsLoadingLogistics] = useState(true);
+  const selectAllRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
-  // Fetch logistics options from the API
-  useEffect(() => {
-    const fetchLogistics = async () => {
-      try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-        const token = localStorage.getItem("accessToken");
-        if (!baseUrl) {
-          console.warn(
-            "NEXT_PUBLIC_API_URL is not set. Skipping logistics fetch."
-          );
-          return;
-        }
-        const response = await fetch(`${baseUrl}/api/account/logistics/`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        });
-        if (!response.ok) {
-          console.error("Failed to fetch logistics:", response.status);
-          return;
-        }
-        const data = await response.json();
-        setLogistics(data);
-      } catch (error) {
-        console.error("Error fetching logistics:", error);
-      } finally {
-        setIsLoadingLogistics(false);
-      }
-    };
-
-    fetchLogistics();
-  }, []);
 
   // Function to get color based on order status
   const getOrderStatusColor = (status: string) => {
@@ -137,6 +108,41 @@ export function TableBody({
     }
   };
 
+  // Selection helpers
+  const visibleIds = displayData.map((s) => String(s.id));
+  const isAllSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const isIndeterminate =
+    selectedIds.size > 0 &&
+    !isAllSelected &&
+    visibleIds.some((id) => selectedIds.has(id));
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate, selectedIds, displayData]);
+
+  const toggleSelectAll = () => {
+    const next = new Set(selectedIds);
+    if (isAllSelected) {
+      visibleIds.forEach((id) => next.delete(id));
+    } else {
+      visibleIds.forEach((id) => next.add(id));
+    }
+    onSelectionChange(next);
+  };
+
+  const toggleRow = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    onSelectionChange(next);
+  };
+
   return (
     <table
       ref={tableRef}
@@ -156,7 +162,18 @@ export function TableBody({
                   minWidth: `${column.width}px`,
                 }}
               >
-                <span>{column.label}</span>
+                {column.id === "select" ? (
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    className="h-4 w-4 cursor-pointer"
+                    checked={isAllSelected}
+                    onChange={toggleSelectAll}
+                    aria-label="Select all rows on this page"
+                  />
+                ) : (
+                  <span>{column.label}</span>
+                )}
               </th>
             ))}
         </tr>
@@ -176,7 +193,11 @@ export function TableBody({
                       minWidth: `${column.width}px`,
                     }}
                   >
-                    <Skeleton className="h-4 w-full" />
+                    {column.id === "select" ? (
+                      <div className="h-4 w-4 bg-gray-200 rounded-sm" />
+                    ) : (
+                      <Skeleton className="h-4 w-full" />
+                    )}
                   </td>
                 ))}
             </tr>
@@ -195,7 +216,15 @@ export function TableBody({
                       minWidth: `${column.width}px`,
                     }}
                   >
-                    {column.id === "index" ? (
+                    {column.id === "select" ? (
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 cursor-pointer"
+                        checked={selectedIds.has(String(sale.id))}
+                        onChange={() => toggleRow(String(sale.id))}
+                        aria-label={`Select row ${sale.order_code || sale.id}`}
+                      />
+                    ) : column.id === "index" ? (
                       (currentPage - 1) * pageSize + index + 1
                     ) : column.id === "order_status" ? (
                       <div className="flex items-center">
@@ -290,44 +319,6 @@ export function TableBody({
                               ></span>
                               Return Pending
                             </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ) : column.id === "logistics_name" ? (
-                      <div className="flex items-center">
-                        <Select
-                          value={
-                            sale.logistics_name
-                              ? logistics
-                                  .find((l) => l.name === sale.logistics_name)
-                                  ?.id.toString()
-                              : ""
-                          }
-                          onValueChange={(value) =>
-                            handleLogisticsChange(String(sale.id), value)
-                          }
-                        >
-                          <SelectTrigger className="w-full bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
-                            <SelectValue placeholder="Change Logistics" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
-                            {isLoadingLogistics ? (
-                              <SelectItem value="id">Loading...</SelectItem>
-                            ) : (
-                              <>
-                                <SelectItem value="none">
-                                  Change Logistic
-                                </SelectItem>
-                                {logistics.map((logistic) => (
-                                  <SelectItem
-                                    key={logistic.id}
-                                    value={logistic.id.toString() || "default"} // Ensure value is not an empty string
-                                  >
-                                    {logistic.name || "Unnamed Logistic"}
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
                           </SelectContent>
                         </Select>
                       </div>

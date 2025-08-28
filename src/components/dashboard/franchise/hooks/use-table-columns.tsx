@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 
 export function useTableColumns() {
   const [columns, setColumns] = useState<Column[]>([
+    { id: "select", label: "", visible: true, width: 40 },
     { id: "index", label: "#", visible: true, width: 50 },
     {
       id: "timestamp",
@@ -21,13 +22,13 @@ export function useTableColumns() {
       id: "order_code",
       label: "Tracking Code",
       visible: true,
-      width: 350,
+      width: 100,
     },
     {
       id: "delivery_location",
       label: "Delivery Location",
       visible: true,
-      width: 120,
+      width: 130,
     },
 
     {
@@ -99,19 +100,19 @@ export function useTableColumns() {
     {
       id: "delivery_type",
       label: "Delivery Type",
-      visible: true,
+      visible: false,
       width: 50,
     },
     {
       id: "order_status",
       label: "Order Status",
-      visible: true,
+      visible: false,
       width: 50,
     },
     {
       id: "edit",
       label: "Edit",
-      visible: true,
+      visible: false,
       width: 100,
     },
   ]);

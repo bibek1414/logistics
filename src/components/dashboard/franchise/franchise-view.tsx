@@ -28,6 +28,7 @@ export default function FranchiseView({ id }: { id: number }) {
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedPaymentImage, setSelectedPaymentImage] = useState("");
   const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
     useTableColumns();
@@ -217,6 +218,7 @@ export default function FranchiseView({ id }: { id: number }) {
             sales={sales}
             salesperson={salesperson}
             setSalesperson={(value) => handleFilterChange("salesperson", value)}
+            selectedCount={selectedIds.size}
           />
 
           <div className="overflow-auto border rounded-md">
@@ -232,6 +234,8 @@ export default function FranchiseView({ id }: { id: number }) {
               handleEdit={handleEdit}
               setSelectedPaymentImage={setSelectedPaymentImage}
               setShowPaymentImageModal={setShowPaymentImageModal}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
             />
           </div>
 
