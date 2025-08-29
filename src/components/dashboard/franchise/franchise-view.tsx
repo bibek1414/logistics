@@ -17,6 +17,7 @@ import { BulkAssignment } from "./components/bulk-assignment";
 import { OrdersTable } from "./components/orders-table";
 import { useFranchise } from "@/hooks/use-franchises";
 import { FranchiseFilters } from "@/services/franchise";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function FranchiseView({ id }: { id: number }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,12 +27,14 @@ export default function FranchiseView({ id }: { id: number }) {
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [filterDeliveryType, setFilterDeliveryType] = useState("all");
 
+  const debouncedSearchOrder = useDebounce(searchOrder, 500);
+
   // Build filters for API
   const filters: FranchiseFilters = useMemo(
     () => ({
       page: currentPage,
       pageSize,
-      search: searchOrder || undefined,
+      search: debouncedSearchOrder || undefined,
       orderStatus: filterStatus !== "all" ? filterStatus : undefined,
       deliveryType:
         filterDeliveryType !== "all" ? filterDeliveryType : undefined,
@@ -41,7 +44,7 @@ export default function FranchiseView({ id }: { id: number }) {
     [
       currentPage,
       pageSize,
-      searchOrder,
+      debouncedSearchOrder,
       filterStatus,
       filterDeliveryType,
       dateRange,
@@ -51,9 +54,8 @@ export default function FranchiseView({ id }: { id: number }) {
   // Fetch data using the hook
   const { franchise, isLoading, isError, error } = useFranchise(id, filters);
 
-  const { mutate: assignRider, isPending: isAssigningRider } = useAssignRider();
-  const { mutate: reassignRider, isPending: isReassigningRider } =
-    useReassignRider();
+  const { mutate: assignRider } = useAssignRider();
+  const { mutate: reassignRider } = useReassignRider();
   const [orderAssignments, setOrderAssignments] = useState<
     Record<string, string>
   >({});
@@ -266,17 +268,6 @@ export default function FranchiseView({ id }: { id: number }) {
     setCurrentPage(1);
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2">
-          <Clock className="w-5 h-5 animate-spin" />
-          <span>Loading orders...</span>
-        </div>
-      </div>
-    );
-  }
-
   if (isError) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
@@ -353,21 +344,29 @@ export default function FranchiseView({ id }: { id: number }) {
               {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}
               {filterStatus !== "all" && ` • Status: ${filterStatus}`}
             </div>
-            <OrdersTable
-              orders={orders}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              selectedOrders={selectedOrders}
-              toggleOrderSelection={toggleOrderSelection}
-              toggleAllOrders={toggleAllOrders}
-              orderAssignments={orderAssignments}
-              assigningOrders={assigningOrders}
-              handleAssignOrder={handleAssignOrder}
-              getStatusColor={getStatusColor}
-              formatDate={formatDate}
-            />
 
-            {totalPages > 1 && (
+            {isLoading ? (
+              <div className="p-6 flex items-center justify-center min-h-[200px]">
+                <Clock className="w-5 h-5 animate-spin text-gray-500" />
+                <span className="ml-2 text-gray-600">Loading orders...</span>
+              </div>
+            ) : (
+              <OrdersTable
+                orders={orders}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                selectedOrders={selectedOrders}
+                toggleOrderSelection={toggleOrderSelection}
+                toggleAllOrders={toggleAllOrders}
+                orderAssignments={orderAssignments}
+                assigningOrders={assigningOrders}
+                handleAssignOrder={handleAssignOrder}
+                getStatusColor={getStatusColor}
+                formatDate={formatDate}
+              />
+            )}
+
+            {totalPages > 1 && !isLoading && (
               <div className="flex items-center justify-between px-4 py-3 border-t">
                 <div className="text-sm text-gray-600">
                   Page {currentPage} of {totalPages} ({totalCount} total orders)

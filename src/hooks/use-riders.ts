@@ -2,15 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RiderService } from "@/services/riders.service";
 import { Rider, RidersResponse } from "@/types/rider";
 import { toast } from "sonner";
-import { useState, useEffect, useMemo } from "react";
 
-export const useRiders = () => {
+export const useRiders = (search: string) => {
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
     RidersResponse,
     Error
   >({
-    queryKey: ["riders"],
-    queryFn: () => RiderService.getRiders(""), // Load all riders initially
+    queryKey: ["riders", search],
+    queryFn: () => RiderService.getRiders(search), // Load all riders initially
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -23,40 +22,6 @@ export const useRiders = () => {
     error,
     refetch,
     isRefetching,
-  };
-};
-
-// New hook for debounced search with client-side filtering
-export const useDebouncedRiderSearch = (
-  riders: Rider[] | undefined,
-  searchTerm: string
-) => {
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 150); // Faster debounce for better UX
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const filteredRiders = useMemo(() => {
-    if (!riders) return [];
-    if (!debouncedSearchTerm.trim()) return riders;
-
-    return riders.filter(
-      (rider) =>
-        `${rider.first_name} ${rider.last_name}`
-          .toLowerCase()
-          .includes(debouncedSearchTerm.toLowerCase()) ||
-        rider.address.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    );
-  }, [riders, debouncedSearchTerm]);
-
-  return {
-    filteredRiders,
-    isSearching: searchTerm !== debouncedSearchTerm,
   };
 };
 

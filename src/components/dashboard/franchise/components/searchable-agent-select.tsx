@@ -7,8 +7,9 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Search, Clock, Phone } from "lucide-react";
-import { useRiders, useDebouncedRiderSearch } from "@/hooks/use-riders";
-import { useState } from "react";
+import { useRiders } from "@/hooks/use-riders";
+import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface SearchableAgentSelectProps {
   orderId?: string;
@@ -28,11 +29,12 @@ export function SearchableAgentSelect({
   assignedRiderPhone,
 }: SearchableAgentSelectProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: riders, isLoading: isLoadingRiders } = useRiders();
-  const { filteredRiders, isSearching } = useDebouncedRiderSearch(
-    riders,
-    searchTerm
-  );
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const { data: riders, isLoading: isLoadingRiders } =
+    useRiders(debouncedSearchTerm);
 
   const getAssignedRiderName = (riderId: string) => {
     if (!riders) return null;
@@ -42,25 +44,42 @@ export function SearchableAgentSelect({
 
   const getAssignedRiderByPhone = (phone?: string | null) => {
     if (!phone || !riders) return null;
-    const rider = riders.find((r) => r.phone_number === phone);
-    return rider || null;
+    return riders.find((r) => r.phone_number === phone) || null;
   };
 
-  // Check if a rider is assigned (either by value or by phone)
   const isRiderAssigned = value || getAssignedRiderByPhone(assignedRiderPhone);
 
-  if (isLoadingRiders) {
-    return (
-      <div className="w-full min-w-[120px] h-8 bg-gray-100 rounded flex items-center justify-center">
-        <Clock className="w-3 h-3 animate-spin" />
-        <span className="ml-1 text-xs">Loading...</span>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (open) {
+      // Defer to next tick to ensure content is mounted
+      const id = requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      // If data refresh causes re-render, keep focus on the input
+      const id = requestAnimationFrame(() => {
+        if (document.activeElement !== inputRef.current) {
+          inputRef.current?.focus();
+        }
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [open, riders, isLoadingRiders]);
 
   return (
     <div className="relative">
-      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+      <Select
+        value={value}
+        onValueChange={onValueChange}
+        disabled={disabled}
+        open={open}
+        onOpenChange={setOpen}
+      >
         <SelectTrigger
           className={`w-full min-w-[120px] h-8 text-xs ${
             isRiderAssigned
@@ -86,30 +105,41 @@ export function SearchableAgentSelect({
             <span>{placeholder}</span>
           )}
         </SelectTrigger>
+
         <SelectContent>
-          <div className="p-2 border-b">
+          {/* Search input */}
+          <div
+            className="p-2 border-b"
+            onPointerDown={(e) => e.stopPropagation()} // Prevent dropdown from closing
+          >
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
               <Input
+                ref={inputRef}
                 placeholder="Search riders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-7 h-7 text-xs"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()} // Prevent closing on click
+                onKeyDown={(e) => e.stopPropagation()} // Prevent Radix from handling keys
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
               />
-              {isSearching && (
+              {isLoadingRiders && (
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                   <Clock className="w-3 h-3 animate-spin text-gray-400" />
                 </div>
               )}
             </div>
           </div>
-          {filteredRiders.length === 0 ? (
+
+          {/* Riders list */}
+          {riders?.length === 0 ? (
             <div className="p-2 text-xs text-gray-500 text-center">
               {searchTerm ? "No riders found" : "No riders available"}
             </div>
           ) : (
-            filteredRiders.map((rider) => (
+            riders?.map((rider) => (
               <SelectItem key={rider.id} value={rider.id.toString()}>
                 <div className="flex items-center justify-between w-full cursor-pointer">
                   <span>
