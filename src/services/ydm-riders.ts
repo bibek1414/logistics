@@ -71,21 +71,27 @@ export class YDMRiderOrdersAPI {
     return response.json() as Promise<SalesResponse>;
   }
 
-  static async updateOrderStatus(
-    orderId: string,
-    newStatus: string
-  ): Promise<unknown> {
-    const url = `${API_BASE_URL}/api/sales/orders/${orderId}/`;
+ static async updateOrderStatus(
+  orderId: string,
+  newStatus: string,
+  comment?: string
+): Promise<unknown> {
+  const url = `${API_BASE_URL}/api/sales/orders/${orderId}/`;
+  const requestBody: any = {
+    order_status: newStatus,
+  };
 
-    const response = await fetch(url, {
-      method: "PATCH",
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({
-        order_status: newStatus,
-      }),
-    });
-
-    await this.handleResponse(response);
-    return response.json();
+  if (comment && comment.trim()) {
+    requestBody.comment = comment.trim();
   }
+
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: this.getAuthHeaders(),
+    body: JSON.stringify(requestBody),
+  });
+
+  await this.handleResponse(response);
+  return response.json();
+}
 }

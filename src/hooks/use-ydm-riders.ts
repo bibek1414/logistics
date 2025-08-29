@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 interface UpdateOrderStatusParams {
   orderId: string;
   newStatus: string;
+   comment?: string;
 }
 
 interface UseYDMRiderOrderMutationsOptions {
@@ -70,8 +71,8 @@ export const useYDMRiderOrderMutations = ({
   const queryClient = useQueryClient();
 
   const updateOrderStatusMutation = useMutation({
-    mutationFn: ({ orderId, newStatus }: UpdateOrderStatusParams) =>
-      YDMRiderOrdersAPI.updateOrderStatus(orderId, newStatus),
+    mutationFn: ({ orderId, newStatus, comment }: UpdateOrderStatusParams) =>
+      YDMRiderOrdersAPI.updateOrderStatus(orderId, newStatus, comment), // Pass comment to API
     onSuccess: () => {
       // Invalidate and refetch orders data
       queryClient.invalidateQueries({

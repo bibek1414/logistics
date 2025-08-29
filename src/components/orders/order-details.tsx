@@ -408,7 +408,7 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
                   <MessageCircle className="w-5 h-5 text-gray-500" />
-                  <span className="font-semibold text-gray-700">Comments</span>
+                  <span className="font-semibold text-gray-700">Comment</span>
                 </div>
 
                 <div className="overflow-x-auto">

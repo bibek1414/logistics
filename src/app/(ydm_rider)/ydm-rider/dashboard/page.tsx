@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { YDMRiderOrderList } from "@/components/ydm-rider/order-list";
-import { useYDMRiderOrders ,useYDMRiderOrderMutations} from "@/hooks/ydm-riders";
+import { useYDMRiderOrders ,useYDMRiderOrderMutations} from "@/hooks/use-ydm-riders";
 import { useOrderFilters } from "@/hooks/use-order-filter";
 
 const RiderOrdersPage: React.FC = () => {
@@ -26,14 +26,14 @@ const RiderOrdersPage: React.FC = () => {
     },
   });
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: string,comment?: string) => {
     try {
       await updateOrderStatusMutation.mutateAsync({
         orderId,
-        newStatus
+        newStatus,
+        comment
       });
     } catch (err) {
-      // Error handling is done in the mutation hook
       throw err;
     }
   };
