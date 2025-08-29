@@ -37,7 +37,7 @@ export function OrderDetailsDialog({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 w-full bg-green-500 hover:bg-green-600 text-white border-green-500 cursor-pointer hover:text-white"
+          className="h-8 w-18 bg-green-500 hover:bg-green-600 text-white border-green-500 cursor-pointer hover:text-white"
         >
           <Eye className="w-3 h-3" />
         </Button>

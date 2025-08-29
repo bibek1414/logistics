@@ -15,6 +15,7 @@ import { OrderDetailsDialog } from "./order-details-dialog";
 import type { SaleItem } from "@/types/sales";
 import { SearchableAgentSelect } from "./searchable-agent-select";
 import { useRouter } from "next/navigation";
+import { EditOrderDialog } from "./edit-order-dialog";
 
 interface OrdersTableProps {
   orders: SaleItem[];
@@ -159,11 +160,15 @@ export function OrdersTable({
                       disabled={assigningOrders.has(order.id.toString())}
                       placeholder="Assign Rider"
                     />
-                    <OrderDetailsDialog
-                      order={order}
-                      getStatusColor={getStatusColor}
-                      formatDate={formatDate}
-                    />
+                    <div className="flex items-center justify-center gap-2">
+                      <OrderDetailsDialog
+                        order={order}
+                        getStatusColor={getStatusColor}
+                        formatDate={formatDate}
+                      />
+
+                      <EditOrderDialog order={order} />
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
