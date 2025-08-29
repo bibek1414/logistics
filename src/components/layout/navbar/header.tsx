@@ -81,7 +81,7 @@ const Header = () => {
                 Dashboard
               </Link>
               <Button asChild variant="default">
-                <Link href="/register">Register</Link>
+                <Link href="/register">User Management</Link>
               </Button>
               <Button
                 variant="destructive"
@@ -161,7 +161,7 @@ const Header = () => {
                     </Link>
                     <Button asChild variant="default" className="w-full">
                       <Link href="/register" onClick={closeMobileMenu}>
-                        Register
+                        User Management
                       </Link>
                     </Button>
                     <Button
