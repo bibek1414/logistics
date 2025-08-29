@@ -46,6 +46,9 @@ export function SearchableAgentSelect({
     return rider || null;
   };
 
+  // Check if a rider is assigned (either by value or by phone)
+  const isRiderAssigned = value || getAssignedRiderByPhone(assignedRiderPhone);
+
   if (isLoadingRiders) {
     return (
       <div className="w-full min-w-[120px] h-8 bg-gray-100 rounded flex items-center justify-center">
@@ -60,8 +63,8 @@ export function SearchableAgentSelect({
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           className={`w-full min-w-[120px] h-8 text-xs ${
-            orderId
-              ? "bg-white text-black border-green-500 cursor-pointer"
+            isRiderAssigned
+              ? "bg-green-200 text-black border-green-500 cursor-pointer"
               : "bg-white cursor-pointer"
           }`}
         >
