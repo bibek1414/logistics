@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -38,6 +39,48 @@ import UserForm from "./user-form";
 
 // Type for Badge variant
 type BadgeVariant = "default" | "secondary" | "outline" | "destructive";
+
+// Skeleton component for table rows
+const UserTableSkeleton = () => {
+  return (
+    <>
+      {[...Array(5)].map((_, index) => (
+        <TableRow key={index}>
+          <TableCell>
+            <Skeleton className="h-4 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-48" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-28" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-24 rounded-full" />
+          </TableCell>
+          <TableCell className="text-right">
+            <div className="flex items-center justify-end gap-2">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+};
+
+// Skeleton for the search and button section
+const HeaderSkeleton = () => {
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="relative flex-1 max-w-md">
+        <Skeleton className="h-10 w-full" />
+      </div>
+      <Skeleton className="h-10 w-24" />
+    </div>
+  );
+};
 
 const RegisterList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -120,9 +163,30 @@ const RegisterList = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading users...</span>
+      <div className="space-y-4">
+        {/* Header Skeleton */}
+        <HeaderSkeleton />
+
+        {/* Table Skeleton */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <UserTableSkeleton />
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Footer Skeleton */}
+        <Skeleton className="h-4 w-32" />
       </div>
     );
   }
