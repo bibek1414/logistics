@@ -1,16 +1,9 @@
 import { siteConfig } from "@/config/site";
-import { SalesResponse } from "@/types/sales";
+import { SalesResponse , YDMRiderOrderFilters} from "@/types/sales";
 
 const API_BASE_URL = siteConfig.apiBaseUrl;
 
-interface YDMRiderOrderFilters {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  orderStatus?: string;
-  startDate?: string;
-  endDate?: string;
-}
+
 
 export class YDMRiderOrdersAPI {
   private static getAuthHeaders = () => {

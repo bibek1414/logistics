@@ -43,7 +43,7 @@ const RiderOrdersPage: React.FC = () => {
   const errorMessage = error?.message || updateOrderStatusMutation.error?.message || null;
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="max-w-7xl px-4 mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Your Orders</h1>
       </div>
