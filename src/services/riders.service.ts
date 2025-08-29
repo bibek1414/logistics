@@ -26,3 +26,4 @@ export class RiderService {
     return response.json();
   }
 }
+

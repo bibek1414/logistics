@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/navbar/header";
+import ConditionalHeader from "@/components/layout/conditional-navbar/conditional-navbar";
 import Footer from "@/components/layout/footer/footer";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
-
 import { Suspense } from "react";
 import TopLoader from "@/components/ui/top-loader";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -39,7 +39,10 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <TopLoader />
             </Suspense>
-            <Header />
+            
+            {/* Conditional header based on user role */}
+            <ConditionalHeader />
+            
             <main className="min-h-screen">{children}</main>
             <Footer />
             <Toaster

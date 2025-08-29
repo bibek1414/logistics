@@ -65,6 +65,7 @@ export interface OrderData {
   delivery_address: string;
   landmark: string;
   phone_number: string;
+  
   alternate_phone_number: string;
   payment_method: string;
   payment_screenshot: string | null;

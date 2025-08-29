@@ -18,8 +18,21 @@ export enum Role {
 
 export const roleMap = {
   [Role.YDM_Logistics]: "Logistics",
-  [Role.YDM_Rider]: "Rider",
+  [Role.YDM_Rider]: "Rider", 
   [Role.YDM_Operator]: "Operator",
+};
+
+// Helper function to get role-based dashboard route
+export const getRoleDashboardRoute = (role: Role): string => {
+  switch (role) {
+    case Role.YDM_Rider:
+      return "/ydm-rider/dashboard";
+    case Role.YDM_Logistics:
+    case Role.YDM_Operator:
+      return "/dashboard";
+    default:
+      return "/dashboard";
+  }
 };
 
 interface User {
@@ -64,8 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   if (!baseUrl) {
-    // Fail fast in development if the env var is missing
-    // eslint-disable-next-line no-console
     console.warn(
       "NEXT_PUBLIC_API_URL is not set. Auth requests will fail until it is configured."
     );
@@ -110,7 +121,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           "Content-Type": "application/json",
         },
-        // Backend likely expects snake_case
         body: JSON.stringify({
           phone_number: credentials.phoneNumber,
           password: credentials.password,
@@ -129,6 +139,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!profileResp.ok) throw new Error("Failed to fetch profile");
       const profile: User = await profileResp.json();
       setUser(profile);
+
+      // Redirect to role-based dashboard after successful login
+      const dashboardRoute = getRoleDashboardRoute(profile.role);
+      router.push(dashboardRoute);
     } catch (error) {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");

@@ -11,6 +11,15 @@ export interface Sale {
   items: SaleItem[];
 }
 
+export interface YDMRiderOrderFilters {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  orderStatus?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface DashLocation {
   id: number;
   name: string;
