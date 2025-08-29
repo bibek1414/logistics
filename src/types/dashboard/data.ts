@@ -26,13 +26,10 @@ interface DeliveryPerformance {
 interface OrderStatusBreakdown {
   Pending: OrderData;
   Processing: OrderData;
-  "Sent to Dash": OrderData;
   "Sent to YDM": OrderData;
   Delivered: OrderData;
-  Indrive: OrderData;
   Cancelled: OrderData;
   "Returned By Customer": OrderData;
-  "Returned By Dash": OrderData;
   "Return Pending": OrderData;
   "Out For Delivery": OrderData;
   Rescheduled: OrderData;

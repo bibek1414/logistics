@@ -94,14 +94,11 @@ export function OrderFilters({
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="Processing">Processing</SelectItem>
-              <SelectItem value="Sent to Dash">Sent to Dash</SelectItem>
-              <SelectItem value="Indrive">Indrive</SelectItem>
               <SelectItem value="Delivered">Delivered</SelectItem>
               <SelectItem value="Cancelled">Cancelled</SelectItem>
               <SelectItem value="Returned By Customer">
                 Returned By Customer
               </SelectItem>
-              <SelectItem value="Returned By Dash">Returned By Dash</SelectItem>
               <SelectItem value="Return Pending">Return Pending</SelectItem>
             </SelectContent>
           </Select>
