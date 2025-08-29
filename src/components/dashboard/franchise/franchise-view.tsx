@@ -26,7 +26,7 @@ export default function FranchiseView({ id }: { id: number }) {
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [filterDeliveryType, setFilterDeliveryType] = useState("all");
-
+  const [filterIsAssigned, setFilterIsAssigned] = useState("all");
   const debouncedSearchOrder = useDebounce(searchOrder, 500);
 
   // Build filters for API
@@ -40,6 +40,7 @@ export default function FranchiseView({ id }: { id: number }) {
         filterDeliveryType !== "all" ? filterDeliveryType : undefined,
       startDate: dateRange.from || undefined,
       endDate: dateRange.to || undefined,
+      isAssigned: filterIsAssigned !== "all" ? filterIsAssigned : undefined,
     }),
     [
       currentPage,
@@ -48,6 +49,7 @@ export default function FranchiseView({ id }: { id: number }) {
       filterStatus,
       filterDeliveryType,
       dateRange,
+      filterIsAssigned,
     ]
   );
 
@@ -250,7 +252,8 @@ export default function FranchiseView({ id }: { id: number }) {
       filterStatus !== "all" ||
       dateRange.from !== "" ||
       dateRange.to !== "" ||
-      filterDeliveryType !== "all"
+      filterDeliveryType !== "all" ||
+      filterIsAssigned !== "all"
     );
   };
 
@@ -259,6 +262,7 @@ export default function FranchiseView({ id }: { id: number }) {
     setFilterStatus("all");
     setDateRange({ from: "", to: "" });
     setFilterDeliveryType("all");
+    setFilterIsAssigned("all");
     setCurrentPage(1);
   };
 
@@ -319,6 +323,8 @@ export default function FranchiseView({ id }: { id: number }) {
                 setFilterDeliveryType={setFilterDeliveryType}
                 hasActiveFilters={hasActiveFilters}
                 clearAllFilters={clearAllFilters}
+                filterIsAssigned={filterIsAssigned}
+                setFilterIsAssigned={setFilterIsAssigned}
               />
             </div>
           </CardHeader>
@@ -337,6 +343,7 @@ export default function FranchiseView({ id }: { id: number }) {
               )}
               {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}
               {filterStatus !== "all" && ` • Status: ${filterStatus}`}
+              {filterIsAssigned !== "all" && ` • Assigned: ${filterIsAssigned}`}
             </div>
 
             {isLoading ? (

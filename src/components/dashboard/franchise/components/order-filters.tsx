@@ -22,6 +22,8 @@ interface OrderFiltersProps {
   setFilterDeliveryType: (value: string) => void;
   hasActiveFilters: () => boolean;
   clearAllFilters: () => void;
+  filterIsAssigned: string;
+  setFilterIsAssigned: (value: string) => void;
 }
 
 export function OrderFilters({
@@ -35,6 +37,8 @@ export function OrderFilters({
   setFilterDeliveryType,
   hasActiveFilters,
   clearAllFilters,
+  filterIsAssigned,
+  setFilterIsAssigned,
 }: OrderFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
@@ -100,6 +104,17 @@ export function OrderFilters({
                 Returned By Customer
               </SelectItem>
               <SelectItem value="Return Pending">Return Pending</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterIsAssigned} onValueChange={setFilterIsAssigned}>
+            <SelectTrigger className="w-full sm:w-40">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Is Assigned</SelectItem>
+              <SelectItem value="true">Assigned</SelectItem>
+              <SelectItem value="false">Unassigned</SelectItem>
             </SelectContent>
           </Select>
         </div>

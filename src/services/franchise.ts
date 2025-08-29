@@ -12,6 +12,7 @@ export interface FranchiseFilters {
   salesperson?: string;
   startDate?: string;
   endDate?: string;
+  isAssigned?: string;
 }
 
 export class FranchiseAPI {
@@ -90,6 +91,10 @@ export class FranchiseAPI {
     // Add logistic parameter if selected
     if (filters?.logistic && filters.logistic !== "all") {
       params.append("logistics", filters.logistic);
+    }
+
+    if (filters?.isAssigned) {
+      params.append("is_assigned", filters.isAssigned);
     }
 
     // Add date range parameters
