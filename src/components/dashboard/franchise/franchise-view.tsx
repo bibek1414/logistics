@@ -1,253 +1,399 @@
 "use client";
 
+import { useState, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Package,
+  CheckCircle,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useAssignRider, useReassignRider } from "@/hooks/use-riders";
+
+import { OrderFilters } from "./components/order-filters";
+import { BulkAssignment } from "./components/bulk-assignment";
+import { OrdersTable } from "./components/orders-table";
 import { useFranchise } from "@/hooks/use-franchises";
-import { useMemo, useRef, useState, useCallback, useEffect } from "react";
-import { useTableColumns } from "@/components/dashboard/franchise/hooks/use-table-columns";
-import { useTableData } from "@/components/dashboard/franchise/hooks/use-table-data";
-import { useTableFilters } from "@/components/dashboard/franchise/hooks/use-table-filters";
-import { TableHeader } from "@/components/dashboard/franchise/components/table-header";
-import { TableBody } from "@/components/dashboard/franchise/components/table-body";
-import { TablePagination } from "@/components/dashboard/franchise/components/table-pagination";
-import type { SaleItem } from "@/types/sales";
-import type { FranchiseFilters } from "@/services/franchise";
+import { FranchiseFilters } from "@/services/franchise";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function FranchiseView({ id }: { id: number }) {
-  const tableRef = useRef<HTMLTableElement>(null);
-  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
-
-  // Local UI states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
-  const [searchInput, setSearchInput] = useState("");
-  const [filterTerm, setFilterTerm] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("all");
-  const [orderStatus, setOrderStatus] = useState("all");
-  const [deliveryType, setDeliveryType] = useState("all");
-  const [logistic, setLogistic] = useState("all");
-  const [salesperson, setSalesperson] = useState("all");
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [selectedPaymentImage, setSelectedPaymentImage] = useState("");
-  const [showPaymentImageModal, setShowPaymentImageModal] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [searchOrder, setSearchOrder] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [filterDeliveryType, setFilterDeliveryType] = useState("all");
 
-  const { columns, toggleColumnVisibility, showAllColumns, hideAllColumns } =
-    useTableColumns();
-  const { sortField, sortDirection, handleSort, sortData, getValueByColumnId } =
-    useTableData();
-  const { applyFilters, dateRange, setDateRange } = useTableFilters();
+  const debouncedSearchOrder = useDebounce(searchOrder, 500);
 
-  // Build filters object for API call
-  const filters: FranchiseFilters = useMemo(() => {
-    const filterObj: FranchiseFilters = {
+  // Build filters for API
+  const filters: FranchiseFilters = useMemo(
+    () => ({
       page: currentPage,
       pageSize,
-    };
+      search: debouncedSearchOrder || undefined,
+      orderStatus: filterStatus !== "all" ? filterStatus : undefined,
+      deliveryType:
+        filterDeliveryType !== "all" ? filterDeliveryType : undefined,
+      startDate: dateRange.from || undefined,
+      endDate: dateRange.to || undefined,
+    }),
+    [
+      currentPage,
+      pageSize,
+      debouncedSearchOrder,
+      filterStatus,
+      filterDeliveryType,
+      dateRange,
+    ]
+  );
 
-    // Add search parameter if present
-    if (filterTerm) {
-      filterObj.search = filterTerm;
-    }
-
-    // Add filter parameters if not "all"
-    if (paymentMethod !== "all") {
-      filterObj.paymentMethod = paymentMethod;
-    }
-
-    if (orderStatus !== "all") {
-      filterObj.orderStatus = orderStatus;
-    }
-
-    if (deliveryType !== "all") {
-      filterObj.deliveryType = deliveryType;
-    }
-
-    if (logistic !== "all") {
-      filterObj.logistic = logistic;
-    }
-
-    if (salesperson !== "all") {
-      filterObj.salesperson = salesperson;
-    }
-
-    // Add date range parameters
-    if (dateRange?.[0]) {
-      const year = dateRange[0].getFullYear();
-      const month = String(dateRange[0].getMonth() + 1).padStart(2, "0");
-      const day = String(dateRange[0].getDate()).padStart(2, "0");
-      filterObj.startDate = `${year}-${month}-${day}`;
-    }
-
-    if (dateRange?.[1]) {
-      const year = dateRange[1].getFullYear();
-      const month = String(dateRange[1].getMonth() + 1).padStart(2, "0");
-      const day = String(dateRange[1].getDate()).padStart(2, "0");
-      filterObj.endDate = `${year}-${month}-${day}`;
-    }
-
-    return filterObj;
-  }, [
-    currentPage,
-    pageSize,
-    filterTerm,
-    paymentMethod,
-    orderStatus,
-    deliveryType,
-    logistic,
-    salesperson,
-    dateRange,
-  ]);
-
+  // Fetch data using the hook
   const { franchise, isLoading, isError, error } = useFranchise(id, filters);
 
-  const statusView = isLoading ? (
-    <div>Loading franchise...</div>
-  ) : isError ? (
-    <div>Failed to load franchise: {error?.message}</div>
-  ) : !franchise ? (
-    <div>No franchise found.</div>
-  ) : null;
-
-  const sales: SaleItem[] = useMemo(
-    () => franchise?.results ?? [],
-    [franchise]
+  const { mutate: assignRider } = useAssignRider();
+  const { mutate: reassignRider } = useReassignRider();
+  const [orderAssignments, setOrderAssignments] = useState<
+    Record<string, string>
+  >({});
+  const [assigningOrders, setAssigningOrders] = useState<Set<string>>(
+    new Set()
   );
+  const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(
+    null
+  );
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkAssignAgent, setBulkAssignAgent] = useState("");
+  const [isBulkAssigning, setIsBulkAssigning] = useState(false);
 
-  // Handle search input change with debouncing
-  const handleSearchInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSearchInput(value);
-      clearTimeout(searchTimeout.current);
-      searchTimeout.current = setTimeout(() => {
-        if (value.length >= 3) {
-          // If search term is 3 or more characters, fetch from API
-          setFilterTerm(value);
-          setCurrentPage(1);
-        } else if (value.length === 0) {
-          // If search is cleared, reset to original data
-          setFilterTerm("");
-          setCurrentPage(1);
+  const orders = franchise?.results || [];
+  const totalCount = franchise?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const handleAssignOrder = async (orderId: string, riderId: string) => {
+    if (!riderId) return;
+
+    setAssigningOrders((prev) => new Set([...prev, orderId]));
+
+    try {
+      const order = orders.find((o) => o.id.toString() === orderId);
+      const hasExistingAssignment = Boolean(
+        orderAssignments[orderId] || order?.ydm_rider
+      );
+
+      await new Promise((resolve) => {
+        const mutation = hasExistingAssignment ? reassignRider : assignRider;
+        mutation(
+          { orders: [orderId], rider: riderId },
+          {
+            onSuccess: () => {
+              setOrderAssignments((prev) => ({ ...prev, [orderId]: riderId }));
+              setAssignmentSuccess(orderId);
+              setTimeout(() => setAssignmentSuccess(null), 2000);
+              resolve(true);
+            },
+            onError: (error) => {
+              console.error(
+                hasExistingAssignment
+                  ? "Re-assignment failed:"
+                  : "Assignment failed:",
+                error
+              );
+              resolve(false);
+            },
+          }
+        );
+      });
+    } finally {
+      setAssigningOrders((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(orderId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleBulkAssignment = async () => {
+    if (!bulkAssignAgent || selectedOrders.size === 0) return;
+
+    setIsBulkAssigning(true);
+
+    try {
+      const orderIds = Array.from(selectedOrders);
+      const toReassign: string[] = [];
+      const toAssign: string[] = [];
+
+      orderIds.forEach((oid) => {
+        const order = orders.find((o) => o.id.toString() === oid);
+        const hasExisting = Boolean(orderAssignments[oid] || order?.ydm_rider);
+        if (hasExisting) {
+          toReassign.push(oid);
+        } else {
+          toAssign.push(oid);
         }
-      }, 300);
-    },
-    []
-  );
+      });
 
-  // Handle filter changes
-  const handleFilterChange = useCallback(
-    (filterType: string, value: string) => {
-      setCurrentPage(1); // Reset to first page when filters change
+      await new Promise((resolve) => {
+        const done: { count: number } = { count: 0 };
+        const totalMutations =
+          (toAssign.length ? 1 : 0) + (toReassign.length ? 1 : 0);
 
-      switch (filterType) {
-        case "paymentMethod":
-          setPaymentMethod(value);
-          break;
-        case "orderStatus":
-          setOrderStatus(value);
-          break;
-        case "deliveryType":
-          setDeliveryType(value);
-          break;
-        case "logistic":
-          setLogistic(value);
-          break;
-        case "salesperson":
-          setSalesperson(value);
-          break;
+        const finalize = () => {
+          done.count += 1;
+          if (done.count >= totalMutations || totalMutations === 0) {
+            resolve(true);
+          }
+        };
+
+        if (toAssign.length) {
+          assignRider(
+            { orders: toAssign, rider: bulkAssignAgent },
+            {
+              onSuccess: finalize,
+              onError: (error) => {
+                console.error("Bulk assignment (assign) failed:", error);
+                finalize();
+              },
+            }
+          );
+        }
+
+        if (toReassign.length) {
+          reassignRider(
+            { orders: toReassign, rider: bulkAssignAgent },
+            {
+              onSuccess: finalize,
+              onError: (error) => {
+                console.error("Bulk assignment (reassign) failed:", error);
+                finalize();
+              },
+            }
+          );
+        }
+      });
+
+      const newAssignments = { ...orderAssignments };
+      selectedOrders.forEach((orderId) => {
+        newAssignments[orderId] = bulkAssignAgent;
+      });
+      setOrderAssignments(newAssignments);
+      setAssignmentSuccess(`${selectedOrders.size} orders`);
+      setSelectedOrders(new Set());
+      setBulkAssignAgent("");
+      setTimeout(() => setAssignmentSuccess(null), 2000);
+    } finally {
+      setIsBulkAssigning(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "processing":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "delivered":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "returned by customer":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "return pending":
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    };
+  };
+
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
       }
-    },
-    []
-  );
-
-  // Handle date range changes
-  const handleDateRangeChange = useCallback(
-    (dr: { from?: Date | undefined; to?: Date | undefined } | undefined) => {
-      setCurrentPage(1); // Reset to first page when date range changes
-      setDateRange(dr ? [dr.from, dr.to] : [undefined, undefined]);
-    },
-    [setDateRange]
-  );
-
-  const fetchSales = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
-
-  const handleStatusChange = (_saleId: string, _newStatus: string) => {
-    // no-op for now; API wiring can be added later
+      return newSet;
+    });
   };
 
-  const handleEdit = (_sale: SaleItem) => {
-    // no-op for now; open side panel etc.
+  const toggleAllOrders = () => {
+    if (selectedOrders.size === orders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(orders.map((order) => order.id.toString())));
+    }
   };
+
+  const hasActiveFilters = () => {
+    return (
+      searchOrder !== "" ||
+      filterStatus !== "all" ||
+      dateRange.from !== "" ||
+      dateRange.to !== "" ||
+      filterDeliveryType !== "all"
+    );
+  };
+
+  const clearAllFilters = () => {
+    setSearchOrder("");
+    setFilterStatus("all");
+    setDateRange({ from: "", to: "" });
+    setFilterDeliveryType("all");
+    setCurrentPage(1);
+  };
+
+  if (isError) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-red-600 mb-2">Error loading orders</div>
+          <div className="text-sm text-gray-600">{error?.message}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-4 space-y-3">
-      {statusView ?? (
-        <>
-          <TableHeader
-            columns={columns}
-            toggleColumnVisibility={toggleColumnVisibility}
-            showAllColumns={showAllColumns}
-            hideAllColumns={hideAllColumns}
-            salesCount={franchise?.count || 0}
-            resultsCount={sales.length}
-            searchInput={searchInput}
-            handleSearchInputChange={handleSearchInputChange}
-            setSearchInput={setSearchInput}
-            setFilterTerm={setFilterTerm}
-            fetchSales={fetchSales}
-            showFilterForm={false}
-            setShowFilterForm={() => {}}
-            setShowExportModal={() => setShowExportModal(true)}
-            paymentMethod={paymentMethod}
-            setPaymentMethod={(value) =>
-              handleFilterChange("paymentMethod", value)
-            }
-            orderStatus={orderStatus}
-            setOrderStatus={(value) => handleFilterChange("orderStatus", value)}
-            deliveryType={deliveryType}
-            setDeliveryType={(value) =>
-              handleFilterChange("deliveryType", value)
-            }
-            logistic={logistic}
-            setLogistic={(value) => handleFilterChange("logistic", value)}
-            dateRange={
-              dateRange ? { from: dateRange[0], to: dateRange[1] } : undefined
-            }
-            setDateRange={handleDateRangeChange}
-            sales={sales}
-            salesperson={salesperson}
-            setSalesperson={(value) => handleFilterChange("salesperson", value)}
-            selectedCount={selectedIds.size}
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <BulkAssignment
+            selectedOrders={selectedOrders}
+            bulkAssignAgent={bulkAssignAgent}
+            setBulkAssignAgent={setBulkAssignAgent}
+            isBulkAssigning={isBulkAssigning}
+            handleBulkAssignment={handleBulkAssignment}
           />
+        </div>
 
-          <div className="overflow-auto border rounded-md">
-            <TableBody
-              tableRef={tableRef}
-              columns={columns.map((c) => ({ ...c, visible: c.visible }))}
-              isLoading={isLoading}
-              displayData={sales}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              getValueByColumnId={getValueByColumnId}
-              handleStatusChange={handleStatusChange}
-              handleEdit={handleEdit}
-              setSelectedPaymentImage={setSelectedPaymentImage}
-              setShowPaymentImageModal={setShowPaymentImageModal}
-              selectedIds={selectedIds}
-              onSelectionChange={setSelectedIds}
-            />
+        {assignmentSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span className="text-green-800 text-sm font-medium">
+              {assignmentSuccess.includes("orders")
+                ? `${assignmentSuccess} assigned successfully!`
+                : `Order ${assignmentSuccess} assigned successfully!`}
+            </span>
           </div>
+        )}
+      </div>
 
-          <TablePagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalCount={franchise?.count || 0}
-            hasNext={!!franchise?.next}
-            fetchSales={fetchSales}
-          />
-        </>
-      )}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6">
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3 sm:pb-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary" />
+                  Order Assignment Center
+                </CardTitle>
+              </div>
+              <OrderFilters
+                searchOrder={searchOrder}
+                setSearchOrder={setSearchOrder}
+                filterStatus={filterStatus}
+                setFilterStatus={setFilterStatus}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                filterDeliveryType={filterDeliveryType}
+                setFilterDeliveryType={setFilterDeliveryType}
+                hasActiveFilters={hasActiveFilters}
+                clearAllFilters={clearAllFilters}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
+              Showing {orders.length} of {totalCount} orders
+              {(dateRange.from || dateRange.to) && (
+                <span>
+                  {" • Date: "}
+                  {dateRange.from && dateRange.to
+                    ? `${dateRange.from} to ${dateRange.to}`
+                    : dateRange.from
+                    ? `from ${dateRange.from}`
+                    : `until ${dateRange.to}`}
+                </span>
+              )}
+              {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}
+              {filterStatus !== "all" && ` • Status: ${filterStatus}`}
+            </div>
+
+            {isLoading ? (
+              <div className="p-6 flex items-center justify-center min-h-[200px]">
+                <Clock className="w-5 h-5 animate-spin text-gray-500" />
+                <span className="ml-2 text-gray-600">Loading orders...</span>
+              </div>
+            ) : (
+              <OrdersTable
+                orders={orders}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                selectedOrders={selectedOrders}
+                toggleOrderSelection={toggleOrderSelection}
+                toggleAllOrders={toggleAllOrders}
+                orderAssignments={orderAssignments}
+                assigningOrders={assigningOrders}
+                handleAssignOrder={handleAssignOrder}
+                getStatusColor={getStatusColor}
+                formatDate={formatDate}
+              />
+            )}
+
+            {totalPages > 1 && !isLoading && (
+              <div className="flex items-center justify-between px-4 py-3 border-t">
+                <div className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages} ({totalCount} total orders)
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

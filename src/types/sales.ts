@@ -50,6 +50,7 @@ export interface SaleItem {
   remaining_amount: number | null;
   alternate_phone_number: string | null;
   delivery_type: string;
+  ydm_rider?: string | null;
 }
 
 interface OrderProduct {
