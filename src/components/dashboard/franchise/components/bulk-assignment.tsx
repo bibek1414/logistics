@@ -10,8 +10,6 @@ interface BulkAssignmentProps {
   setBulkAssignAgent: (value: string) => void;
   isBulkAssigning: boolean;
   handleBulkAssignment: () => void;
-  bulkAgentSearch: string;
-  setBulkAgentSearch: (value: string) => void;
 }
 
 export function BulkAssignment({
@@ -20,8 +18,6 @@ export function BulkAssignment({
   setBulkAssignAgent,
   isBulkAssigning,
   handleBulkAssignment,
-  bulkAgentSearch,
-  setBulkAgentSearch,
 }: BulkAssignmentProps) {
   if (selectedOrders.size === 0) return null;
 
@@ -34,8 +30,6 @@ export function BulkAssignment({
         value={bulkAssignAgent}
         onValueChange={setBulkAssignAgent}
         placeholder="Select rider for bulk assignment"
-        searchTerm={bulkAgentSearch}
-        setSearchTerm={setBulkAgentSearch}
       />
       <Button
         onClick={handleBulkAssignment}

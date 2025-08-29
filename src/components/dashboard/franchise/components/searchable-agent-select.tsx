@@ -1,5 +1,4 @@
 "use client";
-
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -7,8 +6,9 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { Search, Clock, MapPin } from "lucide-react";
-import { useRiders } from "@/hooks/use-riders";
+import { Search, Clock, Phone } from "lucide-react";
+import { useRiders, useDebouncedRiderSearch } from "@/hooks/use-riders";
+import { useState } from "react";
 
 interface SearchableAgentSelectProps {
   orderId?: string;
@@ -16,8 +16,7 @@ interface SearchableAgentSelectProps {
   onValueChange: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
-  searchTerm?: string;
-  setSearchTerm?: (value: string) => void;
+  assignedRiderPhone?: string | null;
 }
 
 export function SearchableAgentSelect({
@@ -26,22 +25,14 @@ export function SearchableAgentSelect({
   onValueChange,
   disabled = false,
   placeholder = "Assign Agent",
-  searchTerm = "",
-  setSearchTerm,
+  assignedRiderPhone,
 }: SearchableAgentSelectProps) {
-  const { data: riders, isLoading } = useRiders();
-
-  const getFilteredAgents = (searchTerm = "") => {
-    if (!riders) return [];
-    return riders.filter(
-      (rider) =>
-        searchTerm === "" ||
-        `${rider.first_name} ${rider.last_name}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        rider.address.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
+  const [searchTerm, setSearchTerm] = useState("");
+  const { data: riders, isLoading: isLoadingRiders } = useRiders();
+  const { filteredRiders, isSearching } = useDebouncedRiderSearch(
+    riders,
+    searchTerm
+  );
 
   const getAssignedRiderName = (riderId: string) => {
     if (!riders) return null;
@@ -49,9 +40,13 @@ export function SearchableAgentSelect({
     return rider ? `${rider.first_name} ${rider.last_name}` : null;
   };
 
-  const filteredAgents = getFilteredAgents(searchTerm);
+  const getAssignedRiderByPhone = (phone?: string | null) => {
+    if (!phone || !riders) return null;
+    const rider = riders.find((r) => r.phone_number === phone);
+    return rider || null;
+  };
 
-  if (isLoading) {
+  if (isLoadingRiders) {
     return (
       <div className="w-full min-w-[120px] h-8 bg-gray-100 rounded flex items-center justify-center">
         <Clock className="w-3 h-3 animate-spin" />
@@ -66,8 +61,8 @@ export function SearchableAgentSelect({
         <SelectTrigger
           className={`w-full min-w-[120px] h-8 text-xs ${
             orderId
-              ? "bg-green-500 hover:bg-green-600 text-white border-green-500"
-              : "bg-white"
+              ? "bg-white text-black border-green-500 cursor-pointer"
+              : "bg-white cursor-pointer"
           }`}
         >
           {disabled ? (
@@ -77,6 +72,13 @@ export function SearchableAgentSelect({
             </div>
           ) : value ? (
             <span>✓ {getAssignedRiderName(value)}</span>
+          ) : getAssignedRiderByPhone(assignedRiderPhone) ? (
+            <span>
+              ✓{" "}
+              {`${getAssignedRiderByPhone(assignedRiderPhone)!.first_name} ${
+                getAssignedRiderByPhone(assignedRiderPhone)!.last_name
+              }`}
+            </span>
           ) : (
             <span>{placeholder}</span>
           )}
@@ -88,27 +90,32 @@ export function SearchableAgentSelect({
               <Input
                 placeholder="Search riders..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm?.(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-7 h-7 text-xs"
                 onClick={(e) => e.stopPropagation()}
               />
+              {isSearching && (
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <Clock className="w-3 h-3 animate-spin text-gray-400" />
+                </div>
+              )}
             </div>
           </div>
-          {filteredAgents.length === 0 ? (
+          {filteredRiders.length === 0 ? (
             <div className="p-2 text-xs text-gray-500 text-center">
-              No riders found
+              {searchTerm ? "No riders found" : "No riders available"}
             </div>
           ) : (
-            filteredAgents.map((rider) => (
+            filteredRiders.map((rider) => (
               <SelectItem key={rider.id} value={rider.id.toString()}>
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full cursor-pointer">
                   <span>
                     {rider.first_name} {rider.last_name}
                   </span>
                   <div className="flex items-center gap-1 ml-2">
-                    <MapPin className="w-3 h-3 text-gray-400" />
+                    <Phone className="w-3 h-3 text-gray-400" />
                     <span className="text-xs text-gray-500">
-                      {rider.address}
+                      {rider.phone_number || "N/A"}
                     </span>
                   </div>
                 </div>

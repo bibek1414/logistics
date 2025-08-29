@@ -26,8 +26,6 @@ interface OrdersTableProps {
   orderAssignments: Record<string, string>;
   assigningOrders: Set<string>;
   handleAssignOrder: (orderId: string, userId: string) => void;
-  agentSearchTerms: Record<string, string>;
-  setAgentSearchTerms: (value: Record<string, string>) => void;
   getStatusColor: (status: string) => string;
   formatDate: (dateString: string) => { date: string; time: string };
 }
@@ -42,8 +40,6 @@ export function OrdersTable({
   orderAssignments,
   assigningOrders,
   handleAssignOrder,
-  agentSearchTerms,
-  setAgentSearchTerms,
   getStatusColor,
   formatDate,
 }: OrdersTableProps) {
@@ -156,17 +152,12 @@ export function OrdersTable({
                     <SearchableAgentSelect
                       orderId={order.id.toString()}
                       value={orderAssignments[order.id] || ""}
+                      assignedRiderPhone={order.ydm_rider || null}
                       onValueChange={(value) =>
                         handleAssignOrder(order.id.toString(), value)
                       }
                       disabled={assigningOrders.has(order.id.toString())}
-                      searchTerm={agentSearchTerms[order.id.toString()] || ""}
-                      setSearchTerm={(value) =>
-                        setAgentSearchTerms({
-                          ...agentSearchTerms,
-                          [order.id.toString()]: value,
-                        })
-                      }
+                      placeholder="Assign Rider"
                     />
                     <OrderDetailsDialog
                       order={order}

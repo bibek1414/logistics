@@ -10,7 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useAssignRider } from "@/hooks/use-riders";
+import { useAssignRider, useReassignRider } from "@/hooks/use-riders";
 
 import { OrderFilters } from "./components/order-filters";
 import { BulkAssignment } from "./components/bulk-assignment";
@@ -52,7 +52,8 @@ export default function FranchiseView({ id }: { id: number }) {
   const { franchise, isLoading, isError, error } = useFranchise(id, filters);
 
   const { mutate: assignRider, isPending: isAssigningRider } = useAssignRider();
-
+  const { mutate: reassignRider, isPending: isReassigningRider } =
+    useReassignRider();
   const [orderAssignments, setOrderAssignments] = useState<
     Record<string, string>
   >({});
@@ -65,10 +66,6 @@ export default function FranchiseView({ id }: { id: number }) {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkAssignAgent, setBulkAssignAgent] = useState("");
   const [isBulkAssigning, setIsBulkAssigning] = useState(false);
-  const [agentSearchTerms, setAgentSearchTerms] = useState<
-    Record<string, string>
-  >({});
-  const [bulkAgentSearch, setBulkAgentSearch] = useState("");
 
   const orders = franchise?.results || [];
   const totalCount = franchise?.count || 0;
@@ -80,8 +77,14 @@ export default function FranchiseView({ id }: { id: number }) {
     setAssigningOrders((prev) => new Set([...prev, orderId]));
 
     try {
+      const order = orders.find((o) => o.id.toString() === orderId);
+      const hasExistingAssignment = Boolean(
+        orderAssignments[orderId] || order?.ydm_rider
+      );
+
       await new Promise((resolve) => {
-        assignRider(
+        const mutation = hasExistingAssignment ? reassignRider : assignRider;
+        mutation(
           { orders: [orderId], rider: riderId },
           {
             onSuccess: () => {
@@ -91,7 +94,12 @@ export default function FranchiseView({ id }: { id: number }) {
               resolve(true);
             },
             onError: (error) => {
-              console.error("Assignment failed:", error);
+              console.error(
+                hasExistingAssignment
+                  ? "Re-assignment failed:"
+                  : "Assignment failed:",
+                error
+              );
               resolve(false);
             },
           }
@@ -112,29 +120,68 @@ export default function FranchiseView({ id }: { id: number }) {
     setIsBulkAssigning(true);
 
     try {
-      await new Promise((resolve) => {
-        assignRider(
-          { orders: Array.from(selectedOrders), rider: bulkAssignAgent },
-          {
-            onSuccess: () => {
-              const newAssignments = { ...orderAssignments };
-              selectedOrders.forEach((orderId) => {
-                newAssignments[orderId] = bulkAssignAgent;
-              });
-              setOrderAssignments(newAssignments);
-              setAssignmentSuccess(`${selectedOrders.size} orders`);
-              setSelectedOrders(new Set());
-              setBulkAssignAgent("");
-              setTimeout(() => setAssignmentSuccess(null), 2000);
-              resolve(true);
-            },
-            onError: (error) => {
-              console.error("Bulk assignment failed:", error);
-              resolve(false);
-            },
-          }
-        );
+      const orderIds = Array.from(selectedOrders);
+      const toReassign: string[] = [];
+      const toAssign: string[] = [];
+
+      orderIds.forEach((oid) => {
+        const order = orders.find((o) => o.id.toString() === oid);
+        const hasExisting = Boolean(orderAssignments[oid] || order?.ydm_rider);
+        if (hasExisting) {
+          toReassign.push(oid);
+        } else {
+          toAssign.push(oid);
+        }
       });
+
+      await new Promise((resolve) => {
+        const done: { count: number } = { count: 0 };
+        const totalMutations =
+          (toAssign.length ? 1 : 0) + (toReassign.length ? 1 : 0);
+
+        const finalize = () => {
+          done.count += 1;
+          if (done.count >= totalMutations || totalMutations === 0) {
+            resolve(true);
+          }
+        };
+
+        if (toAssign.length) {
+          assignRider(
+            { orders: toAssign, rider: bulkAssignAgent },
+            {
+              onSuccess: finalize,
+              onError: (error) => {
+                console.error("Bulk assignment (assign) failed:", error);
+                finalize();
+              },
+            }
+          );
+        }
+
+        if (toReassign.length) {
+          reassignRider(
+            { orders: toReassign, rider: bulkAssignAgent },
+            {
+              onSuccess: finalize,
+              onError: (error) => {
+                console.error("Bulk assignment (reassign) failed:", error);
+                finalize();
+              },
+            }
+          );
+        }
+      });
+
+      const newAssignments = { ...orderAssignments };
+      selectedOrders.forEach((orderId) => {
+        newAssignments[orderId] = bulkAssignAgent;
+      });
+      setOrderAssignments(newAssignments);
+      setAssignmentSuccess(`${selectedOrders.size} orders`);
+      setSelectedOrders(new Set());
+      setBulkAssignAgent("");
+      setTimeout(() => setAssignmentSuccess(null), 2000);
     } finally {
       setIsBulkAssigning(false);
     }
@@ -251,8 +298,6 @@ export default function FranchiseView({ id }: { id: number }) {
             setBulkAssignAgent={setBulkAssignAgent}
             isBulkAssigning={isBulkAssigning}
             handleBulkAssignment={handleBulkAssignment}
-            bulkAgentSearch={bulkAgentSearch}
-            setBulkAgentSearch={setBulkAgentSearch}
           />
         </div>
 
@@ -318,8 +363,6 @@ export default function FranchiseView({ id }: { id: number }) {
               orderAssignments={orderAssignments}
               assigningOrders={assigningOrders}
               handleAssignOrder={handleAssignOrder}
-              agentSearchTerms={agentSearchTerms}
-              setAgentSearchTerms={setAgentSearchTerms}
               getStatusColor={getStatusColor}
               formatDate={formatDate}
             />
