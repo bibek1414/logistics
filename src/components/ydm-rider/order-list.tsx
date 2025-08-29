@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -53,16 +53,19 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  // Debounce search implementation
-  const debounce = (func: Function, delay: number) => {
+  // Debounce function with proper typing
+  const debounce = <T extends unknown[]>(
+    func: (...args: T) => void,
+    delay: number
+  ) => {
     let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
+    return (...args: T) => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => func(...args), delay);
     };
   };
 
-  // Debounced search handler
+  // Debounced search handler with proper dependencies
   const debouncedSearchHandler = useCallback(
     debounce((value: string) => {
       onFiltersChange({ search: value, page: 1 });
@@ -293,7 +296,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                         <TableCell className="font-medium">
                           <Link 
                             href={`/track-order/${order.order_code}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                            className="text-primary hover:text-primary hover:underline"
                           >
                             {order.order_code}
                           </Link>

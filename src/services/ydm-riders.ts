@@ -1,9 +1,12 @@
 import { siteConfig } from "@/config/site";
-import { SalesResponse , YDMRiderOrderFilters} from "@/types/sales";
+import { SalesResponse, YDMRiderOrderFilters } from "@/types/sales";
 
 const API_BASE_URL = siteConfig.apiBaseUrl;
 
-
+interface UpdateOrderStatusRequest {
+  order_status: string;
+  comment?: string;
+}
 
 export class YDMRiderOrdersAPI {
   private static getAuthHeaders = () => {
@@ -71,27 +74,27 @@ export class YDMRiderOrdersAPI {
     return response.json() as Promise<SalesResponse>;
   }
 
- static async updateOrderStatus(
-  orderId: string,
-  newStatus: string,
-  comment?: string
-): Promise<unknown> {
-  const url = `${API_BASE_URL}/api/sales/orders/${orderId}/`;
-  const requestBody: any = {
-    order_status: newStatus,
-  };
+  static async updateOrderStatus(
+    orderId: string,
+    newStatus: string,
+    comment?: string
+  ): Promise<unknown> {
+    const url = `${API_BASE_URL}/api/sales/orders/${orderId}/`;
+    const requestBody: UpdateOrderStatusRequest = {
+      order_status: newStatus,
+    };
 
-  if (comment && comment.trim()) {
-    requestBody.comment = comment.trim();
+    if (comment && comment.trim()) {
+      requestBody.comment = comment.trim();
+    }
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(requestBody),
+    });
+
+    await this.handleResponse(response);
+    return response.json();
   }
-
-  const response = await fetch(url, {
-    method: "PATCH",
-    headers: this.getAuthHeaders(),
-    body: JSON.stringify(requestBody),
-  });
-
-  await this.handleResponse(response);
-  return response.json();
-}
 }
