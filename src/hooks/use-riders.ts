@@ -33,6 +33,7 @@ export const useAssignRider = () => {
     onSuccess: () => {
       toast.success("Rider assigned successfully");
       queryClient.invalidateQueries({ queryKey: ["riders"] });
+      queryClient.invalidateQueries({ queryKey: ["franchise"] });
     },
     onError: (error: Error) => {
       toast.error(`Failed to assign rider: ${error.message}`);
@@ -50,6 +51,7 @@ export const useReassignRider = () => {
     onSuccess: () => {
       toast.success("Rider re-assigned successfully");
       queryClient.invalidateQueries({ queryKey: ["riders"] });
+      queryClient.invalidateQueries({ queryKey: ["franchise"] });
     },
     onError: (error: Error) => {
       toast.error(`Failed to re-assign rider: ${error.message}`);
