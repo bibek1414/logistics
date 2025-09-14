@@ -93,6 +93,31 @@ export default function FranchiseView({ id }: { id: number }) {
     );
   }, [selectedOrders, orders]);
 
+  // Check if selected orders can be bulk verified (no Return Pending, Returned By YDM, or cancelled status)
+  const canBulkVerify = useMemo(() => {
+    if (selectedOrders.size === 0) return false;
+    const selectedOrdersData = orders.filter(order => 
+      selectedOrders.has(order.id.toString())
+    );
+    // Cannot bulk verify if any selected order has restricted status
+    return selectedOrdersData.every(order => {
+      const status = order.order_status.toLowerCase();
+      return status !== "return pending" && status !== "returned by ydm" && status !== "cancelled";
+    });
+  }, [selectedOrders, orders]);
+
+  // Check if any selected orders have restricted statuses
+  const hasRestrictedOrders = useMemo(() => {
+    if (selectedOrders.size === 0) return false;
+    const selectedOrdersData = orders.filter(order => 
+      selectedOrders.has(order.id.toString())
+    );
+    return selectedOrdersData.some(order => {
+      const status = order.order_status.toLowerCase();
+      return status === "return pending" || status === "returned by ydm" || status === "cancelled";
+    });
+  }, [selectedOrders, orders]);
+
   const handleAssignOrder = async (orderId: string, riderId: string) => {
     if (!riderId) return;
 
@@ -210,6 +235,16 @@ export default function FranchiseView({ id }: { id: number }) {
   };
 
   const handleVerifyOrder = async (orderId: string, status: string) => {
+    // Check if the order has restricted status
+    const order = orders.find((o) => o.id.toString() === orderId);
+    const orderStatus = order?.order_status.toLowerCase();
+    
+    if (orderStatus === "return pending" || orderStatus === "returned by ydm" || orderStatus === "cancelled") {
+      setAssignmentSuccess(`Cannot change status of orders with "${order?.order_status}" status`);
+      setTimeout(() => setAssignmentSuccess(null), 3000);
+      return;
+    }
+
     setVerifyingOrders((prev) => new Set([...prev, orderId]));
 
     try {
@@ -243,20 +278,24 @@ export default function FranchiseView({ id }: { id: number }) {
   const handleBulkVerification = async (status: string) => {
     if (selectedOrders.size === 0) return;
 
+    // Check if any selected orders have restricted statuses
+    if (hasRestrictedOrders) {
+      setAssignmentSuccess("Cannot change status of orders with 'Return Pending', 'Returned By YDM', or 'cancelled' status");
+      setTimeout(() => setAssignmentSuccess(null), 3000);
+      return;
+    }
+
     setIsBulkVerifying(true);
 
     try {
       const orderIds = Array.from(selectedOrders).map((id) => parseInt(id));
-      
-      // If status is "Cancelled", set it to "Return Pending" instead
-      const finalStatus = status === "Cancelled" ? "Return Pending" : status;
 
       await new Promise((resolve) => {
         verifyOrder(
-          { order_ids: orderIds, status: finalStatus },
+          { order_ids: orderIds, status },
           {
             onSuccess: () => {
-              const statusText = finalStatus === "Return Pending" ? "marked as return pending" : finalStatus.toLowerCase();
+              const statusText = status === "Return Pending" ? "marked as return pending" : status.toLowerCase();
               setAssignmentSuccess(
                 `${selectedOrders.size} orders ${statusText} successfully!`
               );
@@ -285,11 +324,14 @@ export default function FranchiseView({ id }: { id: number }) {
       case "delivered":
         return "bg-green-100 text-green-800 border-green-200";
       case "cancelled":
+        // Show cancelled in red colors
         return "bg-red-100 text-red-800 border-red-200";
       case "returned by customer":
         return "bg-orange-100 text-orange-800 border-orange-200";
       case "return pending":
         return "bg-amber-100 text-amber-800 border-amber-200";
+      case "returned by ydm":
+        return "bg-rose-100 text-rose-800 border-rose-200";
       case "out for delivery":
         return "bg-indigo-100 text-indigo-800 border-indigo-200";
       case "rescheduled":
@@ -382,8 +424,8 @@ export default function FranchiseView({ id }: { id: number }) {
           )}
         </div>
 
-        {/* Show bulk verification only if selected orders cannot be assigned */}
-        {selectedOrders.size > 0 && !canBulkAssign && (
+        {/* Show bulk verification only if selected orders cannot be assigned and can be verified */}
+        {selectedOrders.size > 0 && !canBulkAssign && canBulkVerify && (
           <BulkVerification
             selectedOrders={selectedOrders}
             isBulkVerifying={isBulkVerifying}
@@ -391,13 +433,35 @@ export default function FranchiseView({ id }: { id: number }) {
           />
         )}
 
+        {/* Show warning message if restricted orders are selected */}
+        {selectedOrders.size > 0 && hasRestrictedOrders && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2">
+            <Package className="w-5 h-5 text-amber-600" />
+            <span className="text-amber-800 text-sm font-medium">
+              Orders with &quot;Return Pending&quot;, &quot;Returned By YDM&quot;, or &quot;cancelled&quot; status cannot be modified. Please deselect these orders to perform bulk actions.
+            </span>
+          </div>
+        )}
+
         {assignmentSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span className="text-green-800 text-sm font-medium">
-              {assignmentSuccess.includes("orders")
+          <div className={`border rounded-lg p-3 flex items-center gap-2 ${
+            assignmentSuccess.includes("Cannot") || assignmentSuccess.includes("Return Pending") || assignmentSuccess.includes("Returned By YDM") || assignmentSuccess.includes("cancelled")
+              ? "bg-red-50 border-red-200"
+              : "bg-green-50 border-green-200"
+          }`}>
+            <CheckCircle className={`w-5 h-5 ${
+              assignmentSuccess.includes("Cannot") || assignmentSuccess.includes("Return Pending") || assignmentSuccess.includes("Returned By YDM") || assignmentSuccess.includes("cancelled")
+                ? "text-red-600"
+                : "text-green-600"
+            }`} />
+            <span className={`text-sm font-medium ${
+              assignmentSuccess.includes("Cannot") || assignmentSuccess.includes("Return Pending") || assignmentSuccess.includes("Returned By YDM") || assignmentSuccess.includes("cancelled")
+                ? "text-red-800"
+                : "text-green-800"
+            }`}>
+              {assignmentSuccess.includes("orders") && !assignmentSuccess.includes("Cannot")
                 ? `${assignmentSuccess} assigned successfully!`
-                : `Order ${assignmentSuccess} assigned successfully!`}
+                : assignmentSuccess}
             </span>
           </div>
         )}

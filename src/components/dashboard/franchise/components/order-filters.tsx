@@ -96,14 +96,17 @@ export function OrderFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Processing">Processing</SelectItem>
+              <SelectItem value="Verified">Verified</SelectItem>
+              <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
               <SelectItem value="Delivered">Delivered</SelectItem>
               <SelectItem value="Cancelled">Cancelled</SelectItem>
               <SelectItem value="Returned By Customer">
                 Returned By Customer
               </SelectItem>
+              <SelectItem value="Returned By YDM">Returned By YDM</SelectItem>
               <SelectItem value="Return Pending">Return Pending</SelectItem>
+              <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
+              <SelectItem value="Rescheduled">Rescheduled</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterIsAssigned} onValueChange={setFilterIsAssigned}>
