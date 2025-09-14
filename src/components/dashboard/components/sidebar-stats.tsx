@@ -34,12 +34,12 @@ export function SidebarStats({ id }: { id: number }) {
               <span className="font-medium text-slate-700">Total COD:</span>
               <span className="font-semibold">
                 {formatCurrency(
-                  data?.overall_statistics?.["Total COD"]?.amount || 0
+                  data?.overall_statistics?.["Total Orders"]?.amount || 0
                 )}
               </span>
             </div>
             <div className="flex justify-between items-center py-1">
-              <span className="font-medium text-slate-700">Total RTV:</span>
+              <span className="font-medium text-slate-700">Pending RTV:</span>
               <span className="font-semibold">
                 {data?.overall_statistics?.["Total RTV"]?.nos || 0}
               </span>
