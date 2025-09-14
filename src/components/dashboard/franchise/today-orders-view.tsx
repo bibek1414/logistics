@@ -283,9 +283,9 @@ export default function TodayOrdersView({ id }: { id: number }) {
                 selectedOrders={selectedOrders}
                 toggleOrderSelection={toggleOrderSelection}
                 toggleAllOrders={toggleAllOrders}
-                orderAssignments={{}} // No assignments needed for today's orders view
-                assigningOrders={new Set()} // No assigning functionality
-                handleAssignOrder={() => {}} // No assign functionality
+                orderAssignments={{}} 
+                assigningOrders={new Set()} 
+                handleAssignOrder={() => {}} 
                 getStatusColor={getStatusColor}
                 formatDate={formatDate}
                 onVerifyOrder={handleVerifyOrder}

@@ -58,17 +58,114 @@ export default function Dashboard() {
     router.push(`/dashboard/${franchiseId}/orders`);
   };
 
+  // Show loading skeleton while checking authentication
   if (isLoading) {
-    return <p className="p-6">Checking authentication...</p>;
+    return (
+      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6 md:px-10">
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <div>
+              <Skeleton className="h-8 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-6 w-16" />
+          </div>
+        </div>
+
+        {/* Desktop Loading */}
+        <div className="hidden md:block">
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-4 w-8" />
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-16 w-48" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Mobile Loading */}
+        <div className="md:hidden space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
     return null;
   }
 
-  // Show loading while redirecting riders
+  // Show loading skeleton while redirecting riders (instead of just text)
   if (user.role === Role.YDM_Rider) {
-    return <p className="p-6">Redirecting to your dashboard...</p>;
+    return (
+      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6 md:px-10">
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <p className="text-lg text-gray-600">Redirecting to your dashboard...</p>
+          </div>
+        </div>
+
+        {/* Loading skeleton while redirecting */}
+        <div className="hidden md:block">
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-4 w-8" />
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-16 w-48" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="md:hidden space-y-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -151,7 +248,7 @@ export default function Dashboard() {
         )}
 
         {/* Franchises Display */}
-        {!isFranchiseLoading && !isError && (
+        {!isFranchiseLoading && !isError && fetchedFranchises && (
           <>
             {fetchedFranchises.length === 0 ? (
               <div className="text-center py-12">
@@ -167,7 +264,7 @@ export default function Dashboard() {
               <>
                 {/* Desktop Table View */}
                 <div className="hidden md:block">
-                  <Card className=" shadow-none">
+                  <Card className="shadow-none">
                     <CardContent className="p-0">
                       <Table>
                         <TableHeader>
@@ -188,7 +285,7 @@ export default function Dashboard() {
                           {fetchedFranchises.map((franchise, index) => (
                             <TableRow
                               key={franchise.id}
-                              className=" hover:bg-gray-50 transition-colors"
+                              className="hover:bg-gray-50 transition-colors"
                             >
                               <TableCell className="font-medium">
                                 {index + 1}
@@ -198,7 +295,7 @@ export default function Dashboard() {
                                   <div className="font-bold text-gray-900">
                                     {franchise.name}
                                     {franchise.new_order_count > 0 && (
-                                      <span className="text-sm ml-2 font-semibold  border-2 border-red-500 bg-red-500/60 text-white px-2 py-1 rounded-md w-fit">
+                                      <span className="text-sm ml-2 font-semibold border-2 border-red-500 bg-red-500/60 text-white px-2 py-1 rounded-md w-fit">
                                         {franchise.new_order_count} New Orders
                                       </span>
                                     )}
@@ -229,10 +326,7 @@ export default function Dashboard() {
                                               : "cursor-not-allowed"
                                           } transition-colors`}
                                         >
-                                          <div
-                                            key={index}
-                                            className="text-md border rounded p-1 bg-gray-50 cursor-pointer"
-                                          >
+                                          <div className="text-md border rounded p-1 bg-gray-50 cursor-pointer">
                                             <div className="font-medium text-gray-700">
                                               {contact.first_name}{" "}
                                               {contact.last_name}
@@ -299,7 +393,7 @@ export default function Dashboard() {
                             <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
                               {franchise.name}{" "}
                               {franchise.new_order_count > 0 && (
-                                <span className="text-sm ml-2 font-semibold  border-2 border-red-500 bg-red-500/60 text-white px-2 py-0.5 rounded-md w-fit">
+                                <span className="text-sm ml-2 font-semibold border-2 border-red-500 bg-red-500/60 text-white px-2 py-0.5 rounded-md w-fit">
                                   New Orders: {franchise.new_order_count}
                                 </span>
                               )}
@@ -340,10 +434,7 @@ export default function Dashboard() {
                                         : "cursor-not-allowed"
                                     } transition-colors`}
                                   >
-                                    <div
-                                      key={index}
-                                      className="text-xs border rounded p-2 bg-gray-50"
-                                    >
+                                    <div className="text-xs border rounded p-2 bg-gray-50">
                                       <div className="font-medium text-gray-700">
                                         {contact.first_name} {contact.last_name}
                                         <span className="text-gray-500 ml-2">
