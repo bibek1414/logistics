@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -10,6 +11,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -24,6 +35,7 @@ import { SearchableAgentSelect } from "./searchable-agent-select";
 import { useRouter } from "next/navigation";
 import { EditOrderDialog } from "./edit-order-dialog";
 import { useEditOrder } from "@/hooks/use-edit-order";
+import { useVerifyOrder } from "@/hooks/use-verify-order";
 
 interface OrdersTableProps {
   orders: SaleItem[];
@@ -37,6 +49,8 @@ interface OrdersTableProps {
   handleAssignOrder: (orderId: string, userId: string) => void;
   getStatusColor: (status: string) => string;
   formatDate: (dateString: string) => { date: string; time: string };
+  onVerifyOrder?: (orderId: string, status: string) => void;
+  verifyingOrders?: Set<string>;
 }
 
 export function OrdersTable({
@@ -51,15 +65,35 @@ export function OrdersTable({
   handleAssignOrder,
   getStatusColor,
   formatDate,
+  onVerifyOrder,
+  verifyingOrders = new Set(),
 }: OrdersTableProps) {
   const router = useRouter();
   const { mutate: editOrder, isPending: isEditingOrder } = useEditOrder();
+  const [pendingReturnOrder, setPendingReturnOrder] = useState<{
+    orderId: string;
+    newStatus: string;
+  } | null>(null);
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
-    editOrder({
-      order_id: orderId,
-      data: { order_status: newStatus },
-    });
+    if (newStatus === "Return Pending") {
+      setPendingReturnOrder({ orderId, newStatus });
+    } else {
+      editOrder({
+        order_id: orderId,
+        data: { order_status: newStatus },
+      });
+    }
+  };
+
+  const confirmReturnPending = () => {
+    if (pendingReturnOrder) {
+      editOrder({
+        order_id: pendingReturnOrder.orderId,
+        data: { order_status: pendingReturnOrder.newStatus },
+      });
+      setPendingReturnOrder(null);
+    }
   };
   return (
     <div className="overflow-x-auto">
@@ -143,10 +177,21 @@ export function OrdersTable({
                 <TableCell>
                   <Select
                     value={order.order_status}
-                    onValueChange={(value) =>
-                      handleStatusChange(order.id.toString(), value)
+                    onValueChange={(value) => {
+                      if (
+                        order.order_status === "Sent to YDM" &&
+                        onVerifyOrder
+                      ) {
+                        onVerifyOrder(order.id.toString(), value);
+                      } else {
+                        handleStatusChange(order.id.toString(), value);
+                      }
+                    }}
+                    disabled={
+                      isEditingOrder ||
+                      verifyingOrders.has(order.id.toString()) ||
+                      order.order_status === "Return Pending"
                     }
-                    disabled={isEditingOrder}
                   >
                     <SelectTrigger
                       className={`w-full h-8 text-xs font-medium ${getStatusColor(
@@ -156,24 +201,31 @@ export function OrdersTable({
                       <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Verified">Verified</SelectItem>
-                      <SelectItem value="Rescheduled">Rescheduled</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
-                      <SelectItem value="Sent to YDM" disabled>
-                        Sent to YDM
-                      </SelectItem>
-                      <SelectItem value="Delivered" disabled>
-                        Delivered
-                      </SelectItem>
-                      <SelectItem value="Returned By Customer" disabled>
-                        Returned By Customer
-                      </SelectItem>
-                      <SelectItem value="Return Pending" disabled>
-                        Return Pending
-                      </SelectItem>
-                      <SelectItem value="Out For Delivery" disabled>
-                        Out For Delivery
-                      </SelectItem>
+                      {order.order_status === "Sent to YDM" ? (
+                        <>
+                          <SelectItem value="Sent to YDM" disabled>
+                            Sent to YDM
+                          </SelectItem>
+                          <SelectItem value="Verified">Verify</SelectItem>
+                          <SelectItem value="Return Pending">
+                            Return Pending
+                          </SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="Verified">Verified</SelectItem>
+                          <SelectItem value="Rescheduled">
+                            Rescheduled
+                          </SelectItem>
+                          <SelectItem value="Delivered">Delivered</SelectItem>
+                          <SelectItem value="Return Pending">
+                            Return Pending
+                          </SelectItem>
+                          <SelectItem value="Out For Delivery">
+                            Out For Delivery
+                          </SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </TableCell>
@@ -200,8 +252,20 @@ export function OrdersTable({
                       onValueChange={(value) =>
                         handleAssignOrder(order.id.toString(), value)
                       }
-                      disabled={assigningOrders.has(order.id.toString())}
-                      placeholder="Assign Rider"
+                      disabled={
+                        assigningOrders.has(order.id.toString()) ||
+                        order.order_status === "Sent to YDM" ||
+                        order.order_status === "Return Pending"
+                      }
+                      placeholder={
+                        order.order_status === "Sent to YDM"
+                          ? "Verify order first"
+                          : order.order_status === "Return Pending"
+                          ? "Cannot assign rider"
+                          : order.ydm_rider
+                          ? "Reassign Rider"
+                          : "Assign Rider"
+                      }
                     />
                     <div className="flex items-center justify-center gap-2">
                       <OrderDetailsDialog
@@ -219,6 +283,28 @@ export function OrdersTable({
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={!!pendingReturnOrder}
+        onOpenChange={() => setPendingReturnOrder(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to change this order status to &apos;Return
+              Pending&apos;? This action will disable further status changes and
+              rider assignments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReturnPending}>
+              Yes, Change to Return Pending
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

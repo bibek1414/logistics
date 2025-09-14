@@ -11,9 +11,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAssignRider, useReassignRider } from "@/hooks/use-riders";
+import { useVerifyOrder } from "@/hooks/use-verify-order";
 
 import { OrderFilters } from "./components/order-filters";
 import { BulkAssignment } from "./components/bulk-assignment";
+import { BulkVerification } from "./components/bulk-verification";
 import { OrdersTable } from "./components/orders-table";
 import { useFranchise } from "@/hooks/use-franchises";
 import { FranchiseFilters } from "@/services/franchise";
@@ -58,6 +60,7 @@ export default function FranchiseView({ id }: { id: number }) {
 
   const { mutate: assignRider } = useAssignRider();
   const { mutate: reassignRider } = useReassignRider();
+  const { mutate: verifyOrder, isLoading: isVerifyingOrder } = useVerifyOrder();
   const [orderAssignments, setOrderAssignments] = useState<
     Record<string, string>
   >({});
@@ -70,6 +73,10 @@ export default function FranchiseView({ id }: { id: number }) {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkAssignAgent, setBulkAssignAgent] = useState("");
   const [isBulkAssigning, setIsBulkAssigning] = useState(false);
+  const [verifyingOrders, setVerifyingOrders] = useState<Set<string>>(
+    new Set()
+  );
+  const [isBulkVerifying, setIsBulkVerifying] = useState(false);
 
   const orders = franchise?.results || [];
   const totalCount = franchise?.count || 0;
@@ -191,6 +198,71 @@ export default function FranchiseView({ id }: { id: number }) {
     }
   };
 
+  const handleVerifyOrder = async (orderId: string, status: string) => {
+    setVerifyingOrders((prev) => new Set([...prev, orderId]));
+
+    try {
+      await new Promise((resolve) => {
+        verifyOrder(
+          { order_ids: [parseInt(orderId)], status },
+          {
+            onSuccess: () => {
+              setAssignmentSuccess(
+                `Order ${orderId} ${status.toLowerCase()} successfully!`
+              );
+              setTimeout(() => setAssignmentSuccess(null), 2000);
+              resolve(true);
+            },
+            onError: (error) => {
+              console.error("Verification failed:", error);
+              resolve(false);
+            },
+          }
+        );
+      });
+    } finally {
+      setVerifyingOrders((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(orderId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleBulkVerification = async (status: string) => {
+    if (selectedOrders.size === 0) return;
+
+    setIsBulkVerifying(true);
+
+    try {
+      const orderIds = Array.from(selectedOrders).map((id) => parseInt(id));
+
+      await new Promise((resolve) => {
+        verifyOrder(
+          { order_ids: orderIds, status },
+          {
+            onSuccess: () => {
+              setAssignmentSuccess(
+                `${
+                  selectedOrders.size
+                } orders ${status.toLowerCase()} successfully!`
+              );
+              setSelectedOrders(new Set());
+              setTimeout(() => setAssignmentSuccess(null), 2000);
+              resolve(true);
+            },
+            onError: (error) => {
+              console.error("Bulk verification failed:", error);
+              resolve(false);
+            },
+          }
+        );
+      });
+    } finally {
+      setIsBulkVerifying(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "sent to ydm":
@@ -294,6 +366,12 @@ export default function FranchiseView({ id }: { id: number }) {
           />
         </div>
 
+        <BulkVerification
+          selectedOrders={selectedOrders}
+          isBulkVerifying={isBulkVerifying}
+          onBulkVerify={handleBulkVerification}
+        />
+
         {assignmentSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-green-600" />
@@ -368,6 +446,8 @@ export default function FranchiseView({ id }: { id: number }) {
                 handleAssignOrder={handleAssignOrder}
                 getStatusColor={getStatusColor}
                 formatDate={formatDate}
+                onVerifyOrder={handleVerifyOrder}
+                verifyingOrders={verifyingOrders}
               />
             )}
 
