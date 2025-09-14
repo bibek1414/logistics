@@ -42,17 +42,7 @@ export function StatusCards({ id }: { id: number }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-xs">Order Picked</div>
-              <div>
-                {stats?.data?.order_processing?.["Order Picked"]?.nos || 0}
-              </div>
-              <div>
-                {formatAmount(
-                  stats?.data?.order_processing?.["Order Picked"]?.amount || 0
-                )}
-              </div>
-            </div>
+           
             <div className="grid grid-cols-3 gap-2">
               <div className="text-xs">Order Verified</div>
               <div>
@@ -64,18 +54,7 @@ export function StatusCards({ id }: { id: number }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 font-medium">
-              <div className="text-xs">Order Processing</div>
-              <div>
-                {stats?.data?.order_processing?.["Order Processing"]?.nos || 0}
-              </div>
-              <div>
-                {formatAmount(
-                  stats?.data?.order_processing?.["Order Processing"]?.amount ||
-                    0
-                )}
-              </div>
-            </div>
+            
           </div>
         </CardContent>
       </Card>
