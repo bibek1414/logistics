@@ -16,7 +16,7 @@ export const useOrderTracking = (orderCode?: string) => {
     queryFn: () => OrderTrackingAPI.trackAny(orderCode!),
     enabled: !!orderCode,
     retry: 1,
-    staleTime: 0, // Always fresh data for comments
+    staleTime: 0, // Always fresh data for tracking
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -37,15 +37,30 @@ export const useOrderTracking = (orderCode?: string) => {
     });
   };
 
+  // Enhanced error handling
+  const getErrorMessage = () => {
+    if (error?.message) {
+      return error.message;
+    }
+    if (response && !response.success) {
+      return response.message || "Order not found with the provided tracking code";
+    }
+    return null;
+  };
+
+  const hasError = !!error || (response && !response.success);
+  const hasData = response?.success && !!response.data?.id;
+
   return {
     orderData: (response?.success ? response.data : null) as OrderData | null,
     isLoading: isLoading || isRefetching,
-    error: (error?.message ||
-      (response && !response.success ? response.message : null)) as
-      | string
-      | null,
-    hasError: !!error || (response && !response.success),
-    hasData: response?.success && !!response.data?.id,
+    error: getErrorMessage(),
+    hasError,
+    hasData,
+    isOrderNotFound: hasError && (
+      getErrorMessage()?.toLowerCase().includes('not found') || 
+      getErrorMessage()?.toLowerCase().includes('order not found')
+    ),
     validateTrackingCode,
     refreshOrder,
     clearTracking,

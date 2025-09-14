@@ -53,53 +53,61 @@ export const TrackingLanding: React.FC<TrackingLandingProps> = ({
 
   return (
     <div className="bg-primary/80 min-h-screen relative overflow-hidden">
-      {/* Background decorative elements */}
+      {/* Simplified background decorative elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 sm:top-20 left-5 sm:left-10 w-24 sm:w-32 h-24 sm:h-32 bg-primary-foreground rounded-full blur-xl"></div>
-        <div className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 w-32 sm:w-40 h-32 sm:h-40 bg-primary-foreground rounded-full blur-xl"></div>
+        <div className="absolute top-16 left-8 w-20 h-20 sm:w-32 sm:h-32 bg-primary-foreground rounded-full blur-xl"></div>
+        <div className="absolute bottom-16 right-8 w-24 h-24 sm:w-40 sm:h-40 bg-primary-foreground rounded-full blur-xl"></div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-12 sm:mb-16">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground mb-4 sm:mb-6 tracking-tight px-4">
+      {/* Content with better mobile spacing */}
+      <div className="relative z-10 flex flex-col justify-center min-h-screen px-4 py-8">
+        {/* Hero Section - More compact on mobile */}
+        <div className="text-center mb-8 sm:mb-12">
+          
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-primary-foreground mb-2 sm:mb-4 tracking-tight">
             Track Your Order
           </h1>
+          
         </div>
 
-        {/* Tracking Form */}
-        <div className="max-w-2xl mx-auto px-4">
-          <Card className="bg-card text-card-foreground border ">
-            <CardContent className="">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Input
-                  placeholder="Your Tracking Code (e.g., ORD-BF2DF613)"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1 h-12 text-base sm:text-lg"
-                />
+        {/* Tracking Form - Cleaner mobile layout */}
+        <div className="max-w-md sm:max-w-lg mx-auto w-full">
+          <Card className="bg-card/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Your Tracking Code (e.g., ORD-BF2DF613)"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="h-12 text-base border-2 focus:border-primary"
+                  />
+          
+                </div>
+
                 <Button
                   onClick={handleTrack}
                   disabled={!trackingNumber.trim()}
-                  className="h-12 px-6 sm:px-8 w-full sm:w-auto"
+                  className="w-full h-12 text-base font-medium"
                   size="lg"
                 >
-                  <Search className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                  TRACK
+                  <Search className="w-4 h-4 mr-2" />
+                  Track Order
                 </Button>
-              </div>
 
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription className="text-sm">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
+                {error && (
+                  <Alert variant="destructive" className="mt-4">
+                    <AlertDescription className="text-sm">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </CardContent>
           </Card>
+
+          
         </div>
       </div>
     </div>

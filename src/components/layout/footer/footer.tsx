@@ -51,7 +51,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-5">
         {/* Track Parcel Section - Centered */}
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="bg-muted border-primary/30 rounded-lg">
+          <div className="border-primary/30 rounded-lg">
             <div className="p-4 sm:p-6">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-6 sm:gap-8 md:gap-20">
                 {/* Icon + Heading */}

@@ -1,3 +1,5 @@
+
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +37,7 @@ export const ContactButton: React.FC<ContactButtonProps> = ({
       <Button
         size="sm"
         variant="outline"
-        className={`flex-1 text-xs px-2 py-1.5 h-8 ${className}`}
+        className={`flex-1 text-xs px-2 py-1.5 h-8 justify-start ${className} w-fit`}
         onClick={() => handlePhoneCall(contacts[0].phone_number)}
       >
         <Phone className="h-3 w-3 mr-1" />
@@ -53,7 +55,7 @@ export const ContactButton: React.FC<ContactButtonProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className={`flex-1 text-xs px-2 py-1.5 h-8 ${className}`}
+          className={`flex-1 text-xs px-2 py-1.5 h-8 justify-start ${className} w-fit`}
         >
           <Phone className="h-3 w-3 mr-1" />
           <span className="truncate">{buttonText}</span>
@@ -65,10 +67,10 @@ export const ContactButton: React.FC<ContactButtonProps> = ({
           <DropdownMenuItem
             key={`${contact.phone_number}-${index}`}
             onClick={() => handlePhoneCall(contact.phone_number)}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer justify-start"
           >
             <Phone className="h-3 w-3" />
-            <div className="flex flex-col">
+            <div className="flex flex-col text-left">
               <span className="text-sm font-medium">
                 {contact.first_name} {contact.last_name}
               </span>
