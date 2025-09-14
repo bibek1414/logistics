@@ -38,7 +38,7 @@ export function CommentDialog({
 
   const getDialogContent = () => {
     switch (status) {
-      case "Returned By Customer":
+      case "Return Pending":
         return {
           title: "Add Return Comment",
           placeholder: "Enter the reason for the return...",

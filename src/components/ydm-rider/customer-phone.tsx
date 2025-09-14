@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/button"; 
 
 interface CustomerPhoneProps {
   primaryPhone: string;
@@ -15,22 +16,25 @@ export const CustomerPhone: React.FC<CustomerPhoneProps> = ({
 }) => {
   if (isDesktop) {
     return (
-      <div className="space-y-1">
-        <button
+      <div className="space-y-1 text-left">
+        <Button
+          variant="link"
           onClick={() => onPhoneCall(primaryPhone)}
-          className="text-primary hover:text-primary underline block cursor-pointer"
+          className="text-primary p-0 h-auto font-normal"
         >
           {primaryPhone}
-        </button>
+        </Button>
+
         {alternatePhone && (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 text-left">
             Alt:{" "}
-            <button
+            <Button
+              variant="link"
               onClick={() => onPhoneCall(alternatePhone)}
-              className="text-primary hover:text-primary underline cursor-pointer"
+              className="text-primary p-0 h-auto font-normal"
             >
               {alternatePhone}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -38,23 +42,26 @@ export const CustomerPhone: React.FC<CustomerPhoneProps> = ({
   }
 
   return (
-    <div>
+    <div className="text-left">
       <span className="font-medium">Phone:</span>{" "}
-      <button
+      <Button
+        variant="link"
         onClick={() => onPhoneCall(primaryPhone)}
-        className="text-primary hover:text-primary underline break-all"
+        className="text-primary p-0 h-auto font-normal break-all"
       >
         {primaryPhone}
-      </button>
+      </Button>
+
       {alternatePhone && (
-        <div className="text-gray-500 text-xs mt-1">
+        <div className="text-gray-500 text-xs mt-1 text-left">
           <span className="font-medium">Alt:</span>{" "}
-          <button
+          <Button
+            variant="link"
             onClick={() => onPhoneCall(alternatePhone)}
-            className="text-primary hover:text-primary underline break-all"
+            className="text-primary p-0 h-auto font-normal break-all"
           >
             {alternatePhone}
-          </button>
+          </Button>
         </div>
       )}
     </div>

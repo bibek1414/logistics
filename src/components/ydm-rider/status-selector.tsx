@@ -23,10 +23,8 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
         return "default";
       case "rescheduled":
         return "destructive";
-      case "returned by customer":
-        return "secondary";
-      case "processing":
-        return "warning";
+      case "return pending":
+        return "destructive";
       case "out for delivery":
         return "default";
       default:
@@ -34,17 +32,59 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
     }
   };
 
-  const statusOptions = [
-    { value: "Returned By Customer", label: "Returned By Customer" },
-    { value: "Processing", label: "Processing" },
+  // Define all possible status options
+  const allStatusOptions = [
     { value: "Out For Delivery", label: "Out For Delivery" },
+    { value: "Return Pending", label: "Return Pending" },
     { value: "Delivered", label: "Delivered" },
     { value: "Rescheduled", label: "Rescheduled" },
   ];
 
+  // Filter status options based on current status
+  const getAvailableStatusOptions = () => {
+    const currentStatusLower = currentStatus.toLowerCase();
+    
+    // If current status is "Return Pending", no status changes allowed
+    if (currentStatusLower === "return pending") {
+      return [];
+    }
+    
+    // If current status is "Delivered", no status changes allowed
+    if (currentStatusLower === "delivered") {
+      return [];
+    }
+    
+    // For other statuses, return all options
+    return allStatusOptions;
+  };
+
+  const availableStatusOptions = getAvailableStatusOptions();
+  const isStatusChangeDisabled = availableStatusOptions.length === 0;
+
+  // If no status changes are allowed, just show the current status as a badge
+  if (isStatusChangeDisabled) {
+    if (isMobile) {
+      return (
+        <div className="flex xs:flex-row xs:items-center gap-2 mt-3 pt-2">
+          <Badge variant={getStatusColor(currentStatus)} className="text-xs">
+            {currentStatus}
+          </Badge>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center gap-2">
+        <Badge variant={getStatusColor(currentStatus)}>
+          {currentStatus}
+        </Badge>
+      </div>
+    );
+  }
+
   if (isMobile) {
     return (
-      <div className=" xs:flex-row xs:items-center gap-2 mt-3 pt-2 ml-auto">
+      <div className="flex xs:flex-row xs:items-center gap-2 mt-3 pt-2">
         <Select
           value={currentStatus}
           onValueChange={(newStatus) => onStatusChange(orderId, newStatus)}
@@ -55,8 +95,8 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
               {isUpdating ? "Updating..." : currentStatus}
             </Badge>
           </SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((option) => (
+          <SelectContent align="start">
+            {availableStatusOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -78,8 +118,8 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
           {isUpdating ? "Updating..." : currentStatus}
         </Badge>
       </SelectTrigger>
-      <SelectContent>
-        {statusOptions.map((option) => (
+      <SelectContent align="start">
+        {availableStatusOptions.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
           </SelectItem>

@@ -90,7 +90,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   };
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
-    if (newStatus === "Rescheduled" || newStatus === "Returned By Customer") {
+    if (newStatus === "Rescheduled" || newStatus === "Return Pending") {
       setPendingStatusUpdate({ orderId, newStatus });
       setCommentDialogOpen(true);
     } else {
@@ -127,6 +127,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead><Skeleton className="h-4 w-12" /></TableHead>
             <TableHead><Skeleton className="h-4 w-20" /></TableHead>
             <TableHead><Skeleton className="h-4 w-20" /></TableHead>
             <TableHead><Skeleton className="h-4 w-20" /></TableHead>
@@ -139,6 +140,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
         <TableBody>
           {Array.from({ length: 5 }).map((_, index) => (
             <TableRow key={index}>
+              <TableCell><Skeleton className="h-4 w-8" /></TableCell>
               <TableCell><Skeleton className="h-4 w-24" /></TableCell>
               <TableCell><Skeleton className="h-4 w-32" /></TableCell>
               <TableCell><Skeleton className="h-4 w-28" /></TableCell>
@@ -224,6 +226,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>S.N.</TableHead>
                       <TableHead>Order Code</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Phone Number</TableHead>
@@ -234,117 +237,131 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={String(order.id)}>
-                        <TableCell className="font-medium">
-                          <Link 
-                            href={`/track-order/${order.order_code}`}
-                            className="text-primary hover:text-primary hover:underline"
-                          >
-                            {order.order_code}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{order.full_name}</TableCell>
-                        <TableCell>
-                          <CustomerPhone
-                            primaryPhone={order.phone_number}
-                            alternatePhone={order.alternate_phone_number}
-                            onPhoneCall={handlePhoneCall}
-                            isDesktop={true}
-                          />
-                        </TableCell>
-                        <TableCell className="max-w-xs">
-                          <div className="truncate" title={order.delivery_address}>
-                            {order.delivery_address}
-                          </div>
-                        </TableCell>
-                        <TableCell className="cursor-pointer">
-                          <StatusSelector
-                            currentStatus={order.order_status}
-                            orderId={String(order.id)}
-                            isUpdating={updatingStatuses.has(String(order.id))}
-                            onStatusChange={handleStatusChange}
-                          />
-                        </TableCell>
-                        <TableCell>NPR {parseFloat(order.total_amount).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Link href={`/track-order/${order.order_code}`}>
-                            <Button size="icon" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View Details</span>
-                            </Button>
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {orders.map((order, index) => {
+                      const serialNumber = (currentPage - 1) * pageSize + index + 1;
+                      return (
+                        <TableRow key={String(order.id)}>
+                          <TableCell className="font-medium text-gray-600">
+                            {serialNumber}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <Link 
+                              href={`/track-order/${order.order_code}`}
+                              className="text-primary hover:text-primary hover:underline"
+                            >
+                              {order.order_code}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{order.full_name}</TableCell>
+                          <TableCell>
+                            <CustomerPhone
+                              primaryPhone={order.phone_number}
+                              alternatePhone={order.alternate_phone_number}
+                              onPhoneCall={handlePhoneCall}
+                              isDesktop={true}
+                            />
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <div className="truncate" title={order.delivery_address}>
+                              {order.delivery_address}
+                            </div>
+                          </TableCell>
+                          <TableCell className="cursor-pointer">
+                            <StatusSelector
+                              currentStatus={order.order_status}
+                              orderId={String(order.id)}
+                              isUpdating={updatingStatuses.has(String(order.id))}
+                              onStatusChange={handleStatusChange}
+                            />
+                          </TableCell>
+                          <TableCell>NPR {parseFloat(order.total_amount).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Link href={`/track-order/${order.order_code}`}>
+                              <Button size="icon" variant="ghost">
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">View Details</span>
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
               {/* Mobile Card View - Optimized for small screens */}
               <div className="lg:hidden space-y-3">
-                {orders.map((order) => (
-                  <Card key={String(order.id)} className="relative shadow-none">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
-                      <Link 
-                        href={`/track-order/${order.order_code}`}
-                        className="text-primary hover:text-primary hover:underline flex-1 min-w-0"
-                      >
-                        <CardTitle className="text-sm font-semibold truncate">
-                          Order: {order.order_code}
-                        </CardTitle>
-                      </Link>
-                      <Link href={`/track-order/${order.order_code}`} className="ml-2 flex-shrink-0">
-                        <Button size="icon" variant="ghost" className="h-8 w-8">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </CardHeader>
-                    <CardContent className="p-3 pt-0 text-xs sm:text-sm space-y-2">
-                      <div className="break-words">
-                        <span className="font-medium">Customer:</span> {order.full_name}
-                      </div>
-                      <CustomerPhone
-                        primaryPhone={order.phone_number}
-                        alternatePhone={order.alternate_phone_number}
-                        onPhoneCall={handlePhoneCall}
-                      />
-                      <div className="break-words">
-                        <span className="font-medium">Address:</span> {order.delivery_address}
-                      </div>
-                      <div className="font-bold text-green-600">
-                        <span>Total:</span> NPR {parseFloat(order.total_amount).toFixed(2)}
-                      </div>
-                      
-                      {/* Contact Buttons - Responsive layout */}
-                      <div className="flex flex-col gap-2 mt-3 pt-2 border-t border-gray-200">
-                        <div className="flex flex-col xs:flex-row gap-2">
-                          <ContactButton
-                            contacts={[{
-                              phone_number: order.sales_person.phone_number,
-                              first_name: order.sales_person.first_name,
-                              last_name: order.sales_person.last_name,
-                            }]}
-                            buttonText="Contact"
-                          />
-                          <ContactButton
-                            contacts={order.sales_person.franchise_contact_numbers || []}
-                            buttonText="Franchise"
-                          />
+                {orders.map((order, index) => {
+                  const serialNumber = (currentPage - 1) * pageSize + index + 1;
+                  return (
+                    <Card key={String(order.id)} className="relative shadow-none ">
+                      <div className="flex flex-row items-center justify-between p-3 pb-0 space-y-0">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
+                            {serialNumber}.
+                          </span>
+                          <Link 
+                            href={`/track-order/${order.order_code}`}
+                            className="text-primary hover:text-primary hover:underline flex-1 min-w-0"
+                          >
+                            <CardTitle className="text-sm font-semibold truncate ">
+                              {order.order_code}
+                            </CardTitle>
+                          </Link>
                         </div>
+                        <Link href={`/track-order/${order.order_code}`} className="ml-2 flex-shrink-0">
+                          <Button size="icon" variant="ghost" className="h-8 w-8">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </div>
-                      
-                      {/* Status Update for Mobile - Responsive */}
-                      <StatusSelector
-                        currentStatus={order.order_status}
-                        orderId={String(order.id)}
-                        isUpdating={updatingStatuses.has(String(order.id))}
-                        onStatusChange={handleStatusChange}
-                        isMobile={true}
-                      />
-                    </CardContent>
-                  </Card>
-                ))}
+                      <CardContent className="p-3 pt-0 text-xs sm:text-sm space-y-2">
+                        <div className="break-words">
+                          <span className="font-medium">Customer:</span> {order.full_name}
+                        </div>
+                        <CustomerPhone
+                          primaryPhone={order.phone_number}
+                          alternatePhone={order.alternate_phone_number}
+                          onPhoneCall={handlePhoneCall}
+                        />
+                        <div className="break-words">
+                          <span className="font-medium">Address:</span> {order.delivery_address}
+                        </div>
+                        <div className="font-bold text-green-600">
+                          <span>Total:</span> NPR {parseFloat(order.total_amount).toFixed(2)}
+                        </div>
+                        
+                        {/* Contact Buttons - Responsive layout */}
+                        <div className="flex flex-col gap-2 mt-3 pt-2 border-t border-gray-200">
+                          <div className="flex flex-col xs:flex-row gap-2">
+                            <ContactButton
+                              contacts={[{
+                                phone_number: order.sales_person.phone_number,
+                                first_name: order.sales_person.first_name,
+                                last_name: order.sales_person.last_name,
+                              }]}
+                              buttonText="Contact"
+                            />
+                            <ContactButton
+                              contacts={order.sales_person.franchise_contact_numbers || []}
+                              buttonText=" Contact Franchise"
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Status Update for Mobile - Responsive */}
+                        <StatusSelector
+                          currentStatus={order.order_status}
+                          orderId={String(order.id)}
+                          isUpdating={updatingStatuses.has(String(order.id))}
+                          onStatusChange={handleStatusChange}
+                          isMobile={true}
+                        />
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* Pagination - Responsive for small screens */}

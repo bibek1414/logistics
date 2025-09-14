@@ -22,11 +22,43 @@ export class OrderTrackingAPI {
       );
 
       if (!response.ok) {
-        throw new Error(`  "Failed to track order"`);
+        // Handle different HTTP status codes
+        if (response.status === 404) {
+          return {
+            data: {} as OrderData,
+            success: false,
+            message: "Order not found with the provided tracking code",
+            error: "Order not found",
+          };
+        } else if (response.status >= 500) {
+          return {
+            data: {} as OrderData,
+            success: false,
+            message: "Server error. Please try again later.",
+            error: "Server error",
+          };
+        } else {
+          return {
+            data: {} as OrderData,
+            success: false,
+            message: "Failed to track order. Please check your tracking code and try again.",
+            error: `HTTP ${response.status}`,
+          };
+        }
       }
 
       // Parse the full response structure
       const responseData: OrderTrackingResponse = await response.json();
+      
+      // Check if the response indicates no order found (backend specific check)
+      if (!responseData.order || !responseData.order.id) {
+        return {
+          data: {} as OrderData,
+          success: false,
+          message: "Order not found with the provided tracking code",
+          error: "Order not found",
+        };
+      }
 
       const orderData: OrderData = {
         ...responseData.order,
@@ -40,13 +72,21 @@ export class OrderTrackingAPI {
       };
     } catch (error) {
       console.error("Error tracking order:", error);
+      
+      // Network or parsing errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          data: {} as OrderData,
+          success: false,
+          message: "Network error. Please check your connection and try again.",
+          error: "Network error",
+        };
+      }
+      
       return {
         data: {} as OrderData,
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Order not found with the provided tracking code",
+        message: "Order not found with the provided tracking code",
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
