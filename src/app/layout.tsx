@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ConditionalHeader from "@/components/layout/conditional-navbar/conditional-navbar";
+import ConditionalHeader from "@/components/layout/conditiona-header/conditional-header";
 import Footer from "@/components/layout/footer/footer";
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/context/AuthContext";
