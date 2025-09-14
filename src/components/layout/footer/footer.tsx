@@ -47,55 +47,51 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-secondary text-foreground">
-      <div className="max-w-7xl mx-auto">
+    <footer className="bg-white text-foreground border border-t">
+      <div className="max-w-7xl mx-auto px-5">
         {/* Track Parcel Section - Centered */}
-        <div className="py-8">
-          <div className="container mx-auto px-4">
-            <Card className="bg-muted border-primary/30">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-background rounded-lg">
-                      <Mail className="h-8 w-8 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-foreground">
-                        Track your Parcel
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Enter the Tracking ID
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-1 max-w-md gap-2">
-                      <Input
-                        placeholder="Tracking Code"
-                        value={trackingNumber}
-                        onChange={(e) => setTrackingNumber(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        className="bg-background"
-                      />
-                      <Button
-                        onClick={handleTrack}
-                        disabled={!trackingNumber.trim()}
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        <Search className="w-4 h-4 mr-2" />
-                        TRACK ORDER
-                      </Button>
-                    </div>
-                    {/* Error Display */}
-                    {error && (
-                      <Alert variant="destructive" className="max-w-md">
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="bg-muted border-primary/30 rounded-lg">
+            <div className="p-4 sm:p-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-6 sm:gap-8 md:gap-20">
+                {/* Icon + Heading */}
+                <div className="flex items-center gap-2 sm:gap-3 text-left">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+                      Track your Parcel
+                    </h3>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Input + Button */}
+                <div className="flex flex-col gap-2 w-fit max-w-sm">
+                  <div className="flex flex-col sm:flex-row gap-2 w-fit">
+                    <Input
+                      placeholder="Tracking Code"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="bg-background flex-1"
+                    />
+                    <Button
+                      onClick={handleTrack}
+                      disabled={!trackingNumber.trim()}
+                      className="bg-primary hover:bg-primary/90 w-fit sm:w-auto"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      TRACK ORDER
+                    </Button>
+                  </div>
+
+                  {/* Error Display */}
+                  {error && (
+                    <Alert variant="destructive" className="w-full max-w-sm">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -137,18 +133,6 @@ const Footer = () => {
                   QUICK LINKS
                 </h4>
                 <div className="space-y-2">
-                  <Link
-                    href="/about"
-                    className="block text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    About Us
-                  </Link>
-                  <Link
-                    href="/services"
-                    className="block text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Our Services
-                  </Link>
                   <Link
                     href="/branches"
                     className="block text-muted-foreground hover:text-primary transition-colors"

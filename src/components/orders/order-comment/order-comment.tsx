@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useCreateOrderComment } from "@/hooks/use-order-comments";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
 import { Send, Loader2 } from "lucide-react";
 
 interface OrderCommentsSectionProps {
@@ -34,8 +33,8 @@ export const OrderCommentsSection: React.FC<OrderCommentsSectionProps> = ({
   };
 
   return (
-    <Card>
-      <CardContent className="pt-6">
+    <div>
+      <div className="pt-6">
         <form onSubmit={handleSubmitComment} className="space-y-3">
           <Textarea
             placeholder={`Add a comment for order ${orderCode}...`}
@@ -71,7 +70,7 @@ export const OrderCommentsSection: React.FC<OrderCommentsSectionProps> = ({
             Comment added successfully!
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

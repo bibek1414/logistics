@@ -151,14 +151,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = (returnTo?: string) => {
-    setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    const redirectUrl = returnTo
-      ? `/login?returnTo=${encodeURIComponent(returnTo)}`
-      : "/login";
-    router.push(redirectUrl);
-  };
+  setUser(null);
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  const redirectUrl = returnTo
+    ? `/login?returnTo=${encodeURIComponent(returnTo)}`
+    : "/login";
+  router.replace(redirectUrl); 
+};
+
 
   const updateProfile = async (data: Partial<User>) => {
     try {
