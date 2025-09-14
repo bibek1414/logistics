@@ -24,7 +24,7 @@ export class FranchiseAPI {
         ? localStorage.getItem("accessToken")
         : null;
 
-    const response = await fetch(`${this.baseURL}/api/account/franchises`, {
+    const response = await fetch(`${this.baseURL}/api/account/ydm-franchises`, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         Accept: "application/json",

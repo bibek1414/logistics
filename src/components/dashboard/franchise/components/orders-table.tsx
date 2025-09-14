@@ -10,12 +10,20 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { OrderDetailsDialog } from "./order-details-dialog";
 import type { SaleItem } from "@/types/sales";
 import { SearchableAgentSelect } from "./searchable-agent-select";
 import { useRouter } from "next/navigation";
 import { EditOrderDialog } from "./edit-order-dialog";
+import { useEditOrder } from "@/hooks/use-edit-order";
 
 interface OrdersTableProps {
   orders: SaleItem[];
@@ -45,6 +53,14 @@ export function OrdersTable({
   formatDate,
 }: OrdersTableProps) {
   const router = useRouter();
+  const { mutate: editOrder, isPending: isEditingOrder } = useEditOrder();
+
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    editOrder({
+      order_id: orderId,
+      data: { order_status: newStatus },
+    });
+  };
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -125,14 +141,41 @@ export function OrdersTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={`text-xs font-medium ${getStatusColor(
-                      order.order_status
-                    )}`}
+                  <Select
+                    value={order.order_status}
+                    onValueChange={(value) =>
+                      handleStatusChange(order.id.toString(), value)
+                    }
+                    disabled={isEditingOrder}
                   >
-                    {order.order_status.toUpperCase()}
-                  </Badge>
+                    <SelectTrigger
+                      className={`w-full h-8 text-xs font-medium ${getStatusColor(
+                        order.order_status
+                      )}`}
+                    >
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Verified">Verified</SelectItem>
+                      <SelectItem value="Rescheduled">Rescheduled</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="Sent to YDM" disabled>
+                        Sent to YDM
+                      </SelectItem>
+                      <SelectItem value="Delivered" disabled>
+                        Delivered
+                      </SelectItem>
+                      <SelectItem value="Returned By Customer" disabled>
+                        Returned By Customer
+                      </SelectItem>
+                      <SelectItem value="Return Pending" disabled>
+                        Return Pending
+                      </SelectItem>
+                      <SelectItem value="Out For Delivery" disabled>
+                        Out For Delivery
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">

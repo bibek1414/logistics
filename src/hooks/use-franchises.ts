@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { FranchiseAPI, type FranchiseFilters } from "@/services/franchise";
-import type { Franchise } from "@/types/franchise";
 import type { SalesResponse } from "@/types/sales";
+import { Franchise } from "@/types/franchise";
 
 export const useFranchises = () => {
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
