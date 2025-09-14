@@ -44,7 +44,7 @@ const RiderHeader = () => {
         <nav className="flex items-center justify-between">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link href="/ydm-rider/dashboard" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2">
               <Image
                 src="/logo.png"
                 alt="YDM Logistics"
@@ -73,16 +73,17 @@ const RiderHeader = () => {
           ) : user ? (
             <div className="hidden md:flex items-center space-x-8">
               <Link
-                href="/ydm-rider/dashboard"
+                href="/"
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
                 Home
               </Link>
               <Link
-                href="/about"
-                className="text-foreground hover:text-primary transition-colors font-medium"
+                href="/ydm-rider/dashboard"
+                onClick={closeMobileMenu}
+                className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
               >
-                About Us
+                Dashboard
               </Link>
               <Button
                 variant="destructive"
@@ -109,12 +110,7 @@ const RiderHeader = () => {
               >
                 Home
               </Link>
-              <Link
-                href="/about"
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                About Us
-              </Link>
+
               <Button asChild variant="outline" className="hover:bg-muted">
                 <Link href="/login">Login</Link>
               </Button>
@@ -130,11 +126,7 @@ const RiderHeader = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                  <SheetTitle>
-                    {user ? `${user.first_name}'s Menu` : "Navigation Menu"}
-                  </SheetTitle>
-                </SheetHeader>
+               
 
                 {isLoading ? (
                   <MobileNavigationSkeleton />
@@ -146,7 +138,7 @@ const RiderHeader = () => {
                         {user.first_name} {user.last_name}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {user.role.replace('YDM_', '')} • {user.phone_number}
+                        {user.role.replace("YDM_", "")} • {user.phone_number}
                       </p>
                     </div>
 
@@ -156,29 +148,22 @@ const RiderHeader = () => {
                       onClick={closeMobileMenu}
                       className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
                     >
-                      🏠 Home
+                   Home
                     </Link>
-                    <Link
-                      href="/about"
-                      onClick={closeMobileMenu}
-                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                    >
-                      ℹ️ About Us
-                    </Link>
-                    
-                    {/* Dashboard Link - goes to rider dashboard */}
+                   
+
                     <Link
                       href="/ydm-rider/dashboard"
                       onClick={closeMobileMenu}
                       className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
                     >
-                      📊 Dashboard
+                       Dashboard
                     </Link>
 
                     {/* Logout Button */}
                     <Button
                       variant="destructive"
-                      className="w-full mt-4"
+                      className="w-fit ml-3"
                       onClick={() => {
                         logout();
                         closeMobileMenu();
@@ -191,7 +176,7 @@ const RiderHeader = () => {
                           Logging out...
                         </>
                       ) : (
-                        "🚪 Logout"
+                        "Logout"
                       )}
                     </Button>
                   </div>

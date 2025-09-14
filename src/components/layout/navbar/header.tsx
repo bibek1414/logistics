@@ -22,17 +22,18 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   };
 
+  // Optimized skeleton components - only show when actually loading
   const NavigationSkeleton = () => (
-    <div className="hidden md:flex items-center space-x-8">
+    <div className="hidden md:flex items-center space-x-6">
       <div className="h-5 w-12 bg-muted animate-pulse rounded"></div>
-      <div className="h-5 w-16 bg-muted animate-pulse rounded"></div>
-      <div className="h-9 w-28 bg-muted animate-pulse rounded"></div>
+      <div className="h-9 w-20 bg-muted animate-pulse rounded"></div>
+      <div className="h-9 w-32 bg-muted animate-pulse rounded"></div>
       <div className="h-9 w-16 bg-muted animate-pulse rounded"></div>
     </div>
   );
 
   const MobileNavigationSkeleton = () => (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-3 mt-4">
       <div className="h-12 w-full bg-muted animate-pulse rounded-md"></div>
       <div className="h-12 w-full bg-muted animate-pulse rounded-md"></div>
       <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
@@ -61,36 +62,32 @@ const Header = () => {
           {isLoading ? (
             <NavigationSkeleton />
           ) : user ? (
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/"
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
                 Home
               </Link>
-              <Link
-                href="/about"
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                About Us
-              </Link>
+             
               <Link
                 href="/dashboard"
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
                 Dashboard
               </Link>
-              <Button asChild variant="default">
-                <Link href="/register">User Management</Link>
+              <Button asChild variant="default" size="sm">
+                <Link href="/user-management">User Management</Link>
               </Button>
               <Button
                 variant="destructive"
+                size="sm"
                 onClick={() => logout()}
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                     Logging out...
                   </>
                 ) : (
@@ -99,23 +96,15 @@ const Header = () => {
               </Button>
             </div>
           ) : (
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/"
                 className="text-foreground hover:text-primary transition-colors font-medium"
               >
                 Home
               </Link>
-              <Link
-                href="/about"
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                About Us
-              </Link>
-              <Button asChild variant="default">
-                <Link href="/quote">Request a Quote</Link>
-              </Button>
-              <Button asChild variant="outline" className="hover:bg-muted">
+              
+              <Button asChild variant="outline" className="hover:bg-muted" size="sm">
                 <Link href="/login">Login</Link>
               </Button>
             </div>
@@ -137,20 +126,13 @@ const Header = () => {
                 {isLoading ? (
                   <MobileNavigationSkeleton />
                 ) : user ? (
-                  <div className="space-y-4 mt-4">
+                  <div className="space-y-3 mt-4">
                     <Link
                       href="/"
                       onClick={closeMobileMenu}
                       className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
                     >
                       Home
-                    </Link>
-                    <Link
-                      href="/about"
-                      onClick={closeMobileMenu}
-                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                    >
-                      About Us
                     </Link>
                     <Link
                       href="/dashboard"
@@ -160,7 +142,7 @@ const Header = () => {
                       Dashboard
                     </Link>
                     <Button asChild variant="default" className="w-full">
-                      <Link href="/register" onClick={closeMobileMenu}>
+                      <Link href="/user-management" onClick={closeMobileMenu}>
                         User Management
                       </Link>
                     </Button>
@@ -184,7 +166,7 @@ const Header = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4 mt-4">
+                  <div className="space-y-3 mt-4">
                     <Link
                       href="/"
                       onClick={closeMobileMenu}
@@ -192,18 +174,7 @@ const Header = () => {
                     >
                       Home
                     </Link>
-                    <Link
-                      href="/about"
-                      onClick={closeMobileMenu}
-                      className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                    >
-                      About Us
-                    </Link>
-                    <Button asChild variant="default" className="w-full">
-                      <Link href="/quote" onClick={closeMobileMenu}>
-                        Request a Quote
-                      </Link>
-                    </Button>
+                   
                     <Button asChild variant="outline" className="w-full">
                       <Link href="/login" onClick={closeMobileMenu}>
                         Login

@@ -37,6 +37,14 @@ export function LoginForm() {
     }
   };
 
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !isLoading) {
+      e.preventDefault();
+      handleSubmit(onSubmit)();
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md mx-auto">
@@ -47,7 +55,7 @@ export function LoginForm() {
           <div className="w-8 h-0.5 bg-primary mx-auto mt-2"></div>
         </CardHeader>
         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-          <div className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             {errorMessage && (
               <p className="text-sm text-red-600" role="alert">
                 {errorMessage}
@@ -65,6 +73,8 @@ export function LoginForm() {
                 type="tel"
                 placeholder="Enter your phone number"
                 className="h-11 sm:h-12 border-gray-300 focus:border-primary focus:ring-primary text-base"
+                onKeyPress={handleKeyPress}
+                disabled={isLoading}
                 {...register("phoneNumber")}
               />
               {errors.phoneNumber && (
@@ -86,6 +96,8 @@ export function LoginForm() {
                 type="password"
                 placeholder="Enter your password"
                 className="h-11 sm:h-12 border-gray-300 focus:border-primary focus:ring-primary text-base"
+                onKeyPress={handleKeyPress}
+                disabled={isLoading}
                 {...register("password")}
               />
               {errors.password && (
@@ -95,33 +107,14 @@ export function LoginForm() {
               )}
             </div>
 
-            <div className="text-right">
-              <a
-                href="#"
-                className="text-sm text-blue-600 hover:text-blue-800 transition-colors active:text-blue-900"
-              >
-                Forgot Password?
-              </a>
-            </div>
-
             <Button
-              onClick={handleSubmit(onSubmit)}
+              type="submit"
               disabled={isLoading}
-              className="w-full h-11 sm:h-12 bg-primary hover:bg-primary/80 active:bg-primary/90 text-white font-medium rounded-md transition-colors text-base"
+              className="w-full h-11 sm:h-12 bg-primary hover:bg-primary/80 active:bg-primary/90 text-white font-medium rounded-md transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "SIGNING IN..." : "LOGIN"}
             </Button>
-
-            <div className="text-center text-sm text-gray-600 pt-2">
-              Don&apos;t have an account?{" "}
-              <a
-                href="#"
-                className="text-primary hover:text-primary/80 active:text-primary/90 font-medium transition-colors"
-              >
-                Register
-              </a>
-            </div>
-          </div>
+          </form>
         </CardContent>
       </Card>
     </div>

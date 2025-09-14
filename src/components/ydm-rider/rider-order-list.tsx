@@ -9,16 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { SaleItem, YDMRiderOrderFilters } from "@/types/sales";
 import { CommentDialog } from "@/components/ui/comment-dialog";
+import { ContactButton } from "./contact-button";
+import { CustomerPhone } from "./customer-phone";
+import { StatusSelector } from "./status-selector";
 
 interface YDMRiderOrderListProps {
   orders: SaleItem[]; 
@@ -42,7 +43,6 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   onStatusUpdate,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [updatingStatuses, setUpdatingStatuses] = useState<Set<string>>(new Set());
   const [isDebouncing, setIsDebouncing] = useState(false);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
@@ -52,6 +52,11 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   } | null>(null);
 
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Function to handle phone calls
+  const handlePhoneCall = (phoneNumber: string) => {
+    window.open(`tel:${phoneNumber}`, '_self');
+  };
 
   // Debounce function with proper typing
   const debounce = <T extends unknown[]>(
@@ -80,26 +85,15 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
     debouncedSearchHandler(value);
   };
 
-  const handleStatusFilter = (status: string) => {
-    setStatusFilter(status);
-    onFiltersChange({ orderStatus: status, page: 1 });
-  };
-
   const handlePageChange = (page: number) => {
     onFiltersChange({ page });
   };
 
-  const handlePageSizeChange = (size: string) => {
-    onFiltersChange({ pageSize: parseInt(size), page: 1 });
-  };
-
   const handleStatusChange = (orderId: string, newStatus: string) => {
-    if (newStatus === "Rescheduled") {
-      // Open comment dialog for rescheduled status
+    if (newStatus === "Rescheduled" || newStatus === "Returned By Customer") {
       setPendingStatusUpdate({ orderId, newStatus });
       setCommentDialogOpen(true);
     } else {
-      // For other statuses, update directly
       handleStatusUpdate(orderId, newStatus);
     }
   };
@@ -126,32 +120,6 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
       setPendingStatusUpdate(null);
     }
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return "default";
-      case "rescheduled":
-        return "destructive";
-      case "returned by customer":
-        return "secondary";
-      case "processing":
-        return "outline";
-      case "out for delivery":
-        return "default";
-      default:
-        return "secondary";
-    }
-  };
-
-  const statusOptions = [
-    { value: "all", label: "All Orders" },
-    { value: "Returned By Customer", label: "Returned By Customer" },
-    { value: "Processing", label: "Processing" },
-    { value: "Out For Delivery", label: "Out For Delivery" },
-    { value: "Delivered", label: "Delivered" },
-    { value: "Rescheduled", label: "Rescheduled" },
-  ];
 
   // Loading skeletons for desktop view
   const DesktopSkeleton = () => (
@@ -187,14 +155,14 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
 
   // Loading skeletons for mobile view
   const MobileSkeleton = () => (
-    <div className="lg:hidden space-y-4">
+    <div className="lg:hidden space-y-3">
       {Array.from({ length: 5 }).map((_, index) => (
         <Card key={index} className="relative">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-8 w-8 rounded-full" />
           </CardHeader>
-          <CardContent className="p-4 pt-0 text-sm space-y-2">
+          <CardContent className="p-3 pt-0 text-sm space-y-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-full" />
@@ -220,53 +188,28 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Assigned Orders</CardTitle>
-          
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="relative flex-1">
-              <Input
-                placeholder="Search by order code, customer name..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="flex-1"
-              />
-              {(loading || isDebouncing) && (
-                <div className="absolute right-2 top-2.5">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
-                </div>
-              )}
-            </div>
-            <Select value={statusFilter} onValueChange={handleStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="w-full sm:w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
+    <div className="max-w-7xl px-4 mx-auto">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4">Your Assigned Orders</h1>
         
-        <CardContent>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 mb-4">
+          <div className="relative flex-1">
+            <Input
+              placeholder="Search by order code, customer name..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="flex-1 text-sm"
+            />
+            {(loading || isDebouncing) && (
+              <div className="absolute right-2 top-2.5">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      
+        <div>
           {loading || isDebouncing ? (
             <>
               <DesktopSkeleton />
@@ -277,7 +220,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
           ) : (
             <>
               {/* Desktop Table View */}
-              <div className="hidden lg:block">
+              <div className="hidden lg:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -303,37 +246,25 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                         </TableCell>
                         <TableCell>{order.full_name}</TableCell>
                         <TableCell>
-                          <div>
-                            <div>{order.phone_number}</div>
-                            {order.alternate_phone_number && (
-                              <div className="text-sm text-gray-500">
-                                Alt: {order.alternate_phone_number}
-                              </div>
-                            )}
+                          <CustomerPhone
+                            primaryPhone={order.phone_number}
+                            alternatePhone={order.alternate_phone_number}
+                            onPhoneCall={handlePhoneCall}
+                            isDesktop={true}
+                          />
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="truncate" title={order.delivery_address}>
+                            {order.delivery_address}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {order.delivery_address}
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={order.order_status}
-                            onValueChange={(newStatus) => handleStatusChange(String(order.id), newStatus)}
-                            disabled={updatingStatuses.has(String(order.id))}
-                          >
-                            <SelectTrigger className="w-[130px]">
-                              <Badge variant={getStatusColor(order.order_status)}>
-                                {updatingStatuses.has(String(order.id)) ? "Updating..." : order.order_status}
-                              </Badge>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Returned By Customer">Returned By Customer</SelectItem>
-                              <SelectItem value="Processing">Processing</SelectItem>
-                              <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
-                              <SelectItem value="Delivered">Delivered</SelectItem>
-                              <SelectItem value="Rescheduled">Rescheduled</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <TableCell className="cursor-pointer">
+                          <StatusSelector
+                            currentStatus={order.order_status}
+                            orderId={String(order.id)}
+                            isUpdating={updatingStatuses.has(String(order.id))}
+                            onStatusChange={handleStatusChange}
+                          />
                         </TableCell>
                         <TableCell>NPR {parseFloat(order.total_amount).toFixed(2)}</TableCell>
                         <TableCell>
@@ -350,100 +281,104 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                 </Table>
               </div>
 
-              {/* Mobile Card View */}
-              <div className="lg:hidden space-y-4">
+              {/* Mobile Card View - Optimized for small screens */}
+              <div className="lg:hidden space-y-3">
                 {orders.map((order) => (
-                  <Card key={String(order.id)} className="relative">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                  <Card key={String(order.id)} className="relative shadow-none">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                       <Link 
                         href={`/track-order/${order.order_code}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                        className="text-primary hover:text-primary hover:underline flex-1 min-w-0"
                       >
-                        <CardTitle className="text-md">
+                        <CardTitle className="text-sm font-semibold truncate">
                           Order: {order.order_code}
                         </CardTitle>
                       </Link>
-                      <Link href={`/track-order/${order.order_code}`}>
-                        <Button size="icon" variant="ghost">
+                      <Link href={`/track-order/${order.order_code}`} className="ml-2 flex-shrink-0">
+                        <Button size="icon" variant="ghost" className="h-8 w-8">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
                     </CardHeader>
-                    <CardContent className="p-4 pt-0 text-sm space-y-2">
-                      <div>
-                        <strong>Customer:</strong> {order.full_name}
+                    <CardContent className="p-3 pt-0 text-xs sm:text-sm space-y-2">
+                      <div className="break-words">
+                        <span className="font-medium">Customer:</span> {order.full_name}
                       </div>
-                      <div>
-                        <strong>Phone:</strong> {order.phone_number}
-                        {order.alternate_phone_number && (
-                          <div className="text-gray-500 text-xs">
-                            Alt: {order.alternate_phone_number}
-                          </div>
-                        )}
+                      <CustomerPhone
+                        primaryPhone={order.phone_number}
+                        alternatePhone={order.alternate_phone_number}
+                        onPhoneCall={handlePhoneCall}
+                      />
+                      <div className="break-words">
+                        <span className="font-medium">Address:</span> {order.delivery_address}
                       </div>
-                      <div>
-                        <strong>Address:</strong> {order.delivery_address}
-                      </div>
-                      <div>
-                        <strong>Total:</strong> NPR {parseFloat(order.total_amount).toFixed(2)}
+                      <div className="font-bold text-green-600">
+                        <span>Total:</span> NPR {parseFloat(order.total_amount).toFixed(2)}
                       </div>
                       
-                      {/* Status Update for Mobile */}
-                      <div className="flex items-center gap-2 mt-3">
-                        <span className="text-sm font-medium">Status:</span>
-                        <Select
-                          value={order.order_status}
-                          onValueChange={(newStatus) => handleStatusChange(String(order.id), newStatus)}
-                          disabled={updatingStatuses.has(String(order.id))}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <Badge variant={getStatusColor(order.order_status)}>
-                              {updatingStatuses.has(String(order.id)) ? "Updating..." : order.order_status}
-                            </Badge>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Returned By Customer">Returned By Customer</SelectItem>
-                            <SelectItem value="Processing">Processing</SelectItem>
-                            <SelectItem value="Out For Delivery">Out For Delivery</SelectItem>
-                            <SelectItem value="Delivered">Delivered</SelectItem>
-                            <SelectItem value="Rescheduled">Rescheduled</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {/* Contact Buttons - Responsive layout */}
+                      <div className="flex flex-col gap-2 mt-3 pt-2 border-t border-gray-200">
+                        <div className="flex flex-col xs:flex-row gap-2">
+                          <ContactButton
+                            contacts={[{
+                              phone_number: order.sales_person.phone_number,
+                              first_name: order.sales_person.first_name,
+                              last_name: order.sales_person.last_name,
+                            }]}
+                            buttonText="Contact"
+                          />
+                          <ContactButton
+                            contacts={order.sales_person.franchise_contact_numbers || []}
+                            buttonText="Franchise"
+                          />
+                        </div>
                       </div>
+                      
+                      {/* Status Update for Mobile - Responsive */}
+                      <StatusSelector
+                        currentStatus={order.order_status}
+                        orderId={String(order.id)}
+                        isUpdating={updatingStatuses.has(String(order.id))}
+                        onStatusChange={handleStatusChange}
+                        isMobile={true}
+                      />
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
-              {/* Pagination */}
+              {/* Pagination - Responsive for small screens */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 py-4">
-                  <div className="text-sm text-gray-500">
+                <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-4 gap-3 sm:gap-0">
+                  <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left order-2 sm:order-1">
                     Showing {(currentPage - 1) * pageSize + 1} to{" "}
                     {Math.min(currentPage * pageSize, totalCount)} of {totalCount} orders
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2 order-1 sm:order-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
+                      className="px-2 py-1 h-8 text-xs sm:text-sm"
                     >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline ml-1">Previous</span>
                     </Button>
                     
+                    {/* Show fewer page numbers on very small screens */}
                     <div className="flex items-center space-x-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const maxPages = 5;
                         let pageNum;
-                        if (totalPages <= 5) {
+                        if (totalPages <= maxPages) {
                           pageNum = i + 1;
-                        } else if (currentPage <= 3) {
+                        } else if (currentPage <= Math.ceil(maxPages/2)) {
                           pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
+                        } else if (currentPage >= totalPages - Math.floor(maxPages/2)) {
+                          pageNum = totalPages - maxPages + 1 + i;
                         } else {
-                          pageNum = currentPage - 2 + i;
+                          pageNum = currentPage - Math.floor(maxPages/2) + i;
                         }
                         
                         return (
@@ -452,6 +387,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                             variant={currentPage === pageNum ? "default" : "outline"}
                             size="sm"
                             onClick={() => handlePageChange(pageNum)}
+                            className="w-8 h-8 p-0 text-xs"
                           >
                             {pageNum}
                           </Button>
@@ -464,17 +400,18 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                       size="sm"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
+                      className="px-2 py-1 h-8 text-xs sm:text-sm"
                     >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
+                      <span className="hidden xs:inline mr-1">Next</span>
+                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Comment Dialog */}
       <CommentDialog
@@ -482,7 +419,8 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
         onOpenChange={setCommentDialogOpen}
         onCommentSubmit={handleCommentSubmit}
         isLoading={pendingStatusUpdate ? updatingStatuses.has(pendingStatusUpdate.orderId) : false}
+        status={pendingStatusUpdate?.newStatus}
       />
-    </>
+    </div>
   );
 };

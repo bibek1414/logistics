@@ -17,6 +17,7 @@ interface CommentDialogProps {
   onOpenChange: (open: boolean) => void;
   onCommentSubmit: (comment: string) => void;
   isLoading?: boolean;
+  status?: string; // Add status prop to determine dialog content
 }
 
 export function CommentDialog({
@@ -24,6 +25,7 @@ export function CommentDialog({
   onOpenChange,
   onCommentSubmit,
   isLoading = false,
+  status = "Rescheduled", 
 }: CommentDialogProps) {
   const [comment, setComment] = useState("");
 
@@ -34,32 +36,51 @@ export function CommentDialog({
     }
   };
 
+  const getDialogContent = () => {
+    switch (status) {
+      case "Returned By Customer":
+        return {
+          title: "Add Return Comment",
+          placeholder: "Enter the reason for the return...",
+        };
+      case "Rescheduled":
+      default:
+        return {
+          title: "Add Reschedule Comment",
+          placeholder: "Enter the reason for rescheduling...",
+        };
+    }
+  };
+
+  const dialogContent = getDialogContent();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Reschedule Comment</DialogTitle>
-          <DialogDescription>
-            Please provide a reason for rescheduling this order.
-          </DialogDescription>
+          <DialogTitle>{dialogContent.title}</DialogTitle>
+          
         </DialogHeader>
         
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="comment">Comment</Label>
             <Textarea
               id="comment"
-              placeholder="Enter the reason for rescheduling..."
+              placeholder={dialogContent.placeholder}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
+              className="resize-none"
             />
           </div>
           
           <div className="flex justify-end space-x-2">
             <Button
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false);
+                setComment(""); 
+              }}
               disabled={isLoading}
             >
               Cancel

@@ -16,7 +16,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { OrderData } from "@/types/order";
@@ -105,8 +104,8 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
   if (error || !orderData) {
     return (
       <div className=" bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-7xl mx-auto">
-          <CardContent className="pt-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="pt-6">
             <Alert variant="destructive">
               <AlertDescription>{error || "Order not found"}</AlertDescription>
             </Alert>
@@ -114,8 +113,8 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -154,9 +153,9 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
           </Button>
         </div>
 
-        {/* Main Content Card */}
-        <Card className="shadow-sm">
-          <CardContent className="p-8">
+        {/* Main  div */}
+        <div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Title */}
             <div className="text-center mb-8">
               <h1 className="text-2xl font-semibold text-gray-700">
@@ -212,17 +211,17 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                 </div>
               </div>
             </div>
-            {/* Order Summary Cards */}
+            {/* Order Summary divs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
               {/* Order Information */}
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div >
+                <div className="pb-3">
+                  <div className="text-base font-semibold flex items-center gap-2">
                     <Package className="w-4 h-4" />
                     Order Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm ">
+                  </div>
+                </div>
+                <div className="space-y-3 text-sm ">
                   <div className="flex justify-between ">
                     <span className="text-gray-600">Order Code:</span>
                     <span className="font-medium">{orderData.order_code}</span>
@@ -262,18 +261,18 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                       </span>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Customer Information */}
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div className="">
+                <div className="pb-3">
+                  <div className="text-base font-semibold flex items-center gap-2">
                     <User className="w-4 h-4" />
                     Customer Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
+                  </div>
+                </div>
+                <div className="space-y-3 text-sm">
                   <div className="flex justify-between ">
                     <span className="text-gray-600">Name:</span>
                     <span className="font-medium text-left">
@@ -305,20 +304,20 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                       </span>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Order Items */}
               {orderData.order_products &&
                 orderData.order_products.length > 0 && (
-                  <Card className="border border-gray-200">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <div className="">
+                    <div className="pb-3">
+                      <div className="text-base font-semibold flex items-center gap-2">
                         <Package className="w-4 h-4" />
                         Order Items
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                      </div>
+                    </div>
+                    <div className="space-y-3">
                       {orderData.order_products.map((item, index) => (
                         <div
                           key={item.id}
@@ -340,8 +339,8 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                           </div>
                         </div>
                       ))}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )}
             </div>
             {/* Package Status Details */}
@@ -462,8 +461,8 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
                 orderCode={orderData.order_code}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

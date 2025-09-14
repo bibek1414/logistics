@@ -51,6 +51,7 @@ export interface SaleItem {
   alternate_phone_number: string | null;
   delivery_type: string;
   ydm_rider?: string | null;
+  
 }
 
 interface OrderProduct {
@@ -63,11 +64,21 @@ interface Product {
   id: number;
   name: string;
 }
+interface FranchiseContact {
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+}
 
 interface SalesPerson {
   id: number;
   first_name: string;
   last_name: string;
+  phone_number: string;
+  franchise: string;
+  distributor: string;
+  factory: string;
+  franchise_contact_numbers: FranchiseContact[];
 }
 
 export interface SalesResponse {
