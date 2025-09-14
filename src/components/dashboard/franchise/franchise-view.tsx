@@ -193,10 +193,10 @@ export default function FranchiseView({ id }: { id: number }) {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "pending":
+      case "sent to ydm":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "processing":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "verified":
+        return "bg-purple-100 text-purple-800 border-purple-200";
       case "delivered":
         return "bg-green-100 text-green-800 border-green-200";
       case "cancelled":
@@ -205,6 +205,10 @@ export default function FranchiseView({ id }: { id: number }) {
         return "bg-orange-100 text-orange-800 border-orange-200";
       case "return pending":
         return "bg-amber-100 text-amber-800 border-amber-200";
+      case "out for delivery":
+        return "bg-indigo-100 text-indigo-800 border-indigo-200";
+      case "rescheduled":
+        return "bg-cyan-100 text-cyan-800 border-cyan-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
