@@ -95,6 +95,12 @@ export function OrdersTable({
       setPendingReturnOrder(null);
     }
   };
+
+  const isStatusReadOnly = (status: string) => {
+    const readOnlyStatuses = ["Return Pending", "Returned By YDM", "Cancelled"];
+    return readOnlyStatuses.includes(status);
+  };
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -175,59 +181,66 @@ export function OrdersTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Select
-                    value={order.order_status}
-                    onValueChange={(value) => {
-                      if (
-                        order.order_status === "Sent to YDM" &&
-                        onVerifyOrder
-                      ) {
-                        onVerifyOrder(order.id.toString(), value);
-                      } else {
-                        handleStatusChange(order.id.toString(), value);
+                  {isStatusReadOnly(order.order_status) ? (
+                    // Show status as a non-interactive badge for read-only statuses
+                    <Badge className={`text-xs font-medium ${getStatusColor(order.order_status)}`}>
+                      {order.order_status}
+                    </Badge>
+                  ) : (
+                    // Show dropdown for editable statuses
+                    <Select
+                      value={order.order_status}
+                      onValueChange={(value) => {
+                        if (
+                          order.order_status === "Sent to YDM" &&
+                          onVerifyOrder
+                        ) {
+                          onVerifyOrder(order.id.toString(), value);
+                        } else {
+                          handleStatusChange(order.id.toString(), value);
+                        }
+                      }}
+                      disabled={
+                        isEditingOrder ||
+                        verifyingOrders.has(order.id.toString())
                       }
-                    }}
-                    disabled={
-                      isEditingOrder ||
-                      verifyingOrders.has(order.id.toString()) ||
-                      order.order_status === "Return Pending"
-                    }
-                  >
-                    <SelectTrigger
-                      className={`w-full h-8 text-xs font-medium ${getStatusColor(
-                        order.order_status
-                      )}`}
                     >
-                      <SelectValue placeholder="Select Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {order.order_status === "Sent to YDM" ? (
-                        <>
-                          <SelectItem value="Sent to YDM" disabled>
-                            Sent to YDM
-                          </SelectItem>
-                          <SelectItem value="Verified">Verify</SelectItem>
-                          <SelectItem value="Return Pending">
-                            Return Pending
-                          </SelectItem>
-                        </>
-                      ) : (
-                        <>
-                          <SelectItem value="Verified">Verified</SelectItem>
-                          <SelectItem value="Rescheduled">
-                            Rescheduled
-                          </SelectItem>
-                          <SelectItem value="Delivered">Delivered</SelectItem>
-                          <SelectItem value="Return Pending">
-                            Return Pending
-                          </SelectItem>
-                          <SelectItem value="Out For Delivery">
-                            Out For Delivery
-                          </SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                      <SelectTrigger
+                        className={`w-full h-8 text-xs font-medium ${getStatusColor(
+                          order.order_status
+                        )}`}
+                      >
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {order.order_status === "Sent to YDM" ? (
+                          <>
+                            <SelectItem value="Sent to YDM" disabled>
+                              Sent to YDM
+                            </SelectItem>
+                            <SelectItem value="Verified">Verify</SelectItem>
+                            <SelectItem value="Return Pending">
+                              Return Pending
+                            </SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="Verified">Verified</SelectItem>
+                            <SelectItem value="Rescheduled">
+                              Rescheduled
+                            </SelectItem>
+                            <SelectItem value="Delivered">Delivered</SelectItem>
+                            <SelectItem value="Return Pending">
+                              Return Pending
+                            </SelectItem>
+                            <SelectItem value="Out For Delivery">
+                              Out For Delivery
+                            </SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
@@ -255,12 +268,12 @@ export function OrdersTable({
                       disabled={
                         assigningOrders.has(order.id.toString()) ||
                         order.order_status === "Sent to YDM" ||
-                        order.order_status === "Return Pending"
+                        isStatusReadOnly(order.order_status)
                       }
                       placeholder={
                         order.order_status === "Sent to YDM"
                           ? "Verify order first"
-                          : order.order_status === "Return Pending"
+                          : isStatusReadOnly(order.order_status)
                           ? "Cannot assign rider"
                           : order.ydm_rider
                           ? "Reassign Rider"
@@ -303,7 +316,7 @@ export function OrdersTable({
               Yes, Change to Return Pending
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
+          </AlertDialogContent>
       </AlertDialog>
     </div>
   );
