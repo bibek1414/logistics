@@ -82,6 +82,17 @@ export default function FranchiseView({ id }: { id: number }) {
   const totalCount = franchise?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  // Check if selected orders can be bulk assigned (Verified or Rescheduled status)
+  const canBulkAssign = useMemo(() => {
+    if (selectedOrders.size === 0) return false;
+    const selectedOrdersData = orders.filter(order => 
+      selectedOrders.has(order.id.toString())
+    );
+    return selectedOrdersData.every(order => 
+      order.order_status === "Verified" || order.order_status === "Rescheduled"
+    );
+  }, [selectedOrders, orders]);
+
   const handleAssignOrder = async (orderId: string, riderId: string) => {
     if (!riderId) return;
 
@@ -236,16 +247,18 @@ export default function FranchiseView({ id }: { id: number }) {
 
     try {
       const orderIds = Array.from(selectedOrders).map((id) => parseInt(id));
+      
+      // If status is "Cancelled", set it to "Return Pending" instead
+      const finalStatus = status === "Cancelled" ? "Return Pending" : status;
 
       await new Promise((resolve) => {
         verifyOrder(
-          { order_ids: orderIds, status },
+          { order_ids: orderIds, status: finalStatus },
           {
             onSuccess: () => {
+              const statusText = finalStatus === "Return Pending" ? "marked as return pending" : finalStatus.toLowerCase();
               setAssignmentSuccess(
-                `${
-                  selectedOrders.size
-                } orders ${status.toLowerCase()} successfully!`
+                `${selectedOrders.size} orders ${statusText} successfully!`
               );
               setSelectedOrders(new Set());
               setTimeout(() => setAssignmentSuccess(null), 2000);
@@ -357,20 +370,26 @@ export default function FranchiseView({ id }: { id: number }) {
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <BulkAssignment
-            selectedOrders={selectedOrders}
-            bulkAssignAgent={bulkAssignAgent}
-            setBulkAssignAgent={setBulkAssignAgent}
-            isBulkAssigning={isBulkAssigning}
-            handleBulkAssignment={handleBulkAssignment}
-          />
+          {/* Show bulk assignment only if selected orders can be assigned */}
+          {canBulkAssign && (
+            <BulkAssignment
+              selectedOrders={selectedOrders}
+              bulkAssignAgent={bulkAssignAgent}
+              setBulkAssignAgent={setBulkAssignAgent}
+              isBulkAssigning={isBulkAssigning}
+              handleBulkAssignment={handleBulkAssignment}
+            />
+          )}
         </div>
 
-        <BulkVerification
-          selectedOrders={selectedOrders}
-          isBulkVerifying={isBulkVerifying}
-          onBulkVerify={handleBulkVerification}
-        />
+        {/* Show bulk verification only if selected orders cannot be assigned */}
+        {selectedOrders.size > 0 && !canBulkAssign && (
+          <BulkVerification
+            selectedOrders={selectedOrders}
+            isBulkVerifying={isBulkVerifying}
+            onBulkVerify={handleBulkVerification}
+          />
+        )}
 
         {assignmentSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">

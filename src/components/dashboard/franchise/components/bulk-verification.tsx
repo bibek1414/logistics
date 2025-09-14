@@ -34,11 +34,11 @@ export function BulkVerification({
         <Button
           size="sm"
           variant="destructive"
-          onClick={() => onBulkVerify("Cancelled")}
+          onClick={() => onBulkVerify("Return Pending")}
           disabled={isBulkVerifying}
         >
           <XCircle className="w-4 h-4 mr-1" />
-          Bulk Cancel
+          Return Pending
         </Button>
       </div>
     </div>
