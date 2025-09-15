@@ -97,14 +97,7 @@ export class FranchiseAPI {
       params.append("is_assigned", filters.isAssigned);
     }
 
-    // Add date range parameters
-    if (filters?.startDate) {
-      params.append("start_date", filters.startDate);
-    }
-
-    if (filters?.endDate) {
-      params.append("end_date", filters.endDate);
-    }
+   
 
     const url = `${this.baseURL}/api/sales/orders/?${params.toString()}`;
 
