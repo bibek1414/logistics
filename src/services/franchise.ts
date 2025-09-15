@@ -20,9 +20,7 @@ export class FranchiseAPI {
 
   static async list(): Promise<Franchise[]> {
     const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
+      typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
     const response = await fetch(`${this.baseURL}/api/account/ydm-franchises`, {
       headers: {
@@ -47,9 +45,7 @@ export class FranchiseAPI {
     filters?: FranchiseFilters
   ): Promise<SalesResponse> {
     const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
+      typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
     // Build URL with base parameters
     const params = new URLSearchParams();
@@ -58,7 +54,6 @@ export class FranchiseAPI {
     if (filters?.page) {
       params.append("page", filters.page.toString());
     }
-
     if (filters?.pageSize) {
       params.append("page_size", filters.pageSize.toString());
     }
@@ -93,11 +88,17 @@ export class FranchiseAPI {
       params.append("logistics", filters.logistic);
     }
 
+    // Add date filters - these will filter orders by date range
+    if (filters?.startDate) {
+      params.append("start_date", filters.startDate);
+    }
+    if (filters?.endDate) {
+      params.append("end_date", filters.endDate);
+    }
+
     if (filters?.isAssigned) {
       params.append("is_assigned", filters.isAssigned);
     }
-
-   
 
     const url = `${this.baseURL}/api/sales/orders/?${params.toString()}`;
 

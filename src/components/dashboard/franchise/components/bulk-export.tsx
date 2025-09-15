@@ -32,7 +32,7 @@ export function BulkExport({
       "Customer Address": order.delivery_address,
       "Ordered By": `${order.sales_person.first_name} ${order.sales_person.last_name} ${order.sales_person.phone_number}`,
       Franchise: order.sales_person.franchise,
-      "Order Date": new Date(order.created_at).toLocaleDateString("en-GB", {
+      "Order Date": new Date(order.sent_to_ydm_date).toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
         year: "numeric",

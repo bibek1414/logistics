@@ -152,11 +152,12 @@ export function OrdersTable({
                 </TableCell>
                 <TableCell>
                   <div className="bg-gray-600 text-white text-xs px-2 py-1 rounded text-center min-w-[90px]">
+                  
                     <div className="font-medium">
-                      {formatDate(order.created_at).date}
+                      {formatDate(order.sent_to_ydm_date).date}
                     </div>
                     <div className="text-xs opacity-90">
-                      {formatDate(order.created_at).time}
+                      {formatDate(order.sent_to_ydm_date).time}
                     </div>
                   </div>
                 </TableCell>

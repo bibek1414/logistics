@@ -81,8 +81,8 @@ export function OrderDetailsDialog({
                   <strong>Order Code:</strong> {order.order_code}
                 </div>
                 <div>
-                  <strong>Date:</strong> {formatDate(order.created_at).date}{" "}
-                  {formatDate(order.created_at).time}
+                  <strong>Date:</strong> {formatDate(order.sent_to_ydm_date).date}{" "}
+                  {formatDate(order.sent_to_ydm_date).time}
                 </div>
                 <div>
                   <strong>Status:</strong>

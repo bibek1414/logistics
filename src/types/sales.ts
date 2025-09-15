@@ -34,6 +34,7 @@ export interface SaleItem {
   logistics: string;
   id: number;
   created_at: string;
+  sent_to_ydm_date: string;
   full_name: string;
   delivery_address: string;
   city: string;
