@@ -36,9 +36,8 @@ export function Navigation() {
 
   return (
     <div className="mb-6">
-      {/* Franchise Name - Sticky on the left */}
  
-       <div className="fixed top-10 left-20 z-50  md:top-25 md:left-5">
+       <div className="fixed  top-10 left-1/2 -translate-x-1/2 z-50   mx-auto ">
         <div className="bg-white/90 ">
           
           <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
