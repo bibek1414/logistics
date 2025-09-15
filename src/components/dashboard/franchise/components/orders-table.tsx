@@ -248,12 +248,7 @@ export function OrdersTable({
                       Collection Amount:{" "}
                       {Number.parseFloat(order.total_amount).toLocaleString()}
                     </div>
-                    <div className="text-xs text-gray-600">
-                      DeliveryCharge:{" "}
-                      {Number.parseFloat(
-                        order.delivery_charge
-                      ).toLocaleString()}
-                    </div>
+                  
                   </div>
                 </TableCell>
                 <TableCell>
