@@ -147,7 +147,7 @@ export function BulkPrint({
         </head>
         <body>
           <div class="header">
-            <h1>Orders Report</h1>
+            <h1>Returned Orders</h1>
             <p>Date: ${timestamp} | Total Orders: ${ordersData.length}</p>
           </div>
           
