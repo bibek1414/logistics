@@ -17,6 +17,7 @@ export function Navigation() {
   const isOrdersPage = pathname === `${basePath}/orders`;
   const isTodayOrdersPage = pathname === `${basePath}/today-orders`;
   const isReturnPendingPage = pathname === `${basePath}/return-pending`;
+  const isOrderSummaryPage = pathname === `${basePath}/order-summary`;
 
   // Find the current franchise based on the dashboard ID
   const currentFranchise = useMemo(() => {
@@ -30,8 +31,9 @@ export function Navigation() {
       { href: `${basePath}/orders`, label: "All Orders", isActive: isOrdersPage },
       { href: `${basePath}/today-orders`, label: "Today Orders", isActive: isTodayOrdersPage },
       { href: `${basePath}/return-pending`, label: "Return Pending", isActive: isReturnPendingPage },
+      { href: `${basePath}/order-summary`, label: "Order Summary", isActive: isOrderSummaryPage },
     ],
-    [basePath, isDashboardPage, isOrdersPage, isTodayOrdersPage, isReturnPendingPage]
+    [basePath, isDashboardPage, isOrdersPage, isTodayOrdersPage, isReturnPendingPage, isOrderSummaryPage]
   );
 
   return (
