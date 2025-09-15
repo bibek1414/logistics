@@ -51,7 +51,7 @@ export interface SaleItem {
   alternate_phone_number: string | null;
   delivery_type: string;
   ydm_rider?: string | null;
-  
+  comments: string | null;
 }
 
 interface OrderProduct {

@@ -52,14 +52,14 @@ const Header = () => {
             >
               Home
             </Link>
-            
+
             {isAuthenticatedUser ? (
               <>
                 <Link
                   href="/dashboard"
                   className="text-foreground hover:text-primary transition-colors font-medium"
                 >
-                  Dashboard
+                  Franchise List
                 </Link>
                 <Button asChild variant="default" size="sm">
                   <Link href="/user-management">User Management</Link>
@@ -81,7 +81,12 @@ const Header = () => {
                 </Button>
               </>
             ) : (
-              <Button asChild variant="outline" className="hover:bg-muted" size="sm">
+              <Button
+                asChild
+                variant="outline"
+                className="hover:bg-muted"
+                size="sm"
+              >
                 <Link href="/login">Login</Link>
               </Button>
             )}
@@ -108,7 +113,7 @@ const Header = () => {
                   >
                     Home
                   </Link>
-                  
+
                   {isAuthenticatedUser ? (
                     <>
                       <Link
@@ -116,7 +121,7 @@ const Header = () => {
                         onClick={closeMobileMenu}
                         className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
                       >
-                        Dashboard
+                        Franchise List
                       </Link>
                       <Button asChild variant="default" className="w-full">
                         <Link href="/user-management" onClick={closeMobileMenu}>
