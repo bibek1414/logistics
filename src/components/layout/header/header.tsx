@@ -105,11 +105,11 @@ const Header = () => {
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </SheetHeader>
 
-                <div className="space-y-3 mt-4">
+                <div className="space-y-1 mt-4">
                   <Link
                     href="/"
                     onClick={closeMobileMenu}
-                    className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
                   >
                     Home
                   </Link>
@@ -119,33 +119,39 @@ const Header = () => {
                       <Link
                         href="/dashboard"
                         onClick={closeMobileMenu}
-                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                        className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
                       >
                         Franchise List
                       </Link>
-                      <Button asChild variant="default" className="w-full">
-                        <Link href="/user-management" onClick={closeMobileMenu}>
-                          User Management
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        className="w-full"
-                        onClick={() => {
-                          logout();
-                          closeMobileMenu();
-                        }}
-                        disabled={isLogoutLoading}
-                      >
-                        {isLogoutLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Logging out...
-                          </>
-                        ) : (
-                          "Logout"
-                        )}
-                      </Button>
+                      <div className="flex flex-col gap-2 w-fit">
+                        <Button asChild variant="outline" className="w-fit border-none">
+                          <Link
+                            href="/user-management"
+                            onClick={closeMobileMenu}
+                          >
+                            User Management
+                          </Link>
+                        </Button>
+
+                        <Button
+                          variant="destructive"
+                          className="w-fit ml-3"
+                          onClick={() => {
+                            logout();
+                            closeMobileMenu();
+                          }}
+                          disabled={isLogoutLoading}
+                        >
+                          {isLogoutLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Logging out...
+                            </>
+                          ) : (
+                            "Logout"
+                          )}
+                        </Button>
+                      </div>
                     </>
                   ) : (
                     <Button asChild variant="outline" className="w-full">
