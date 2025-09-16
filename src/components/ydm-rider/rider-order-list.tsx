@@ -274,7 +274,21 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                               onStatusChange={handleStatusChange}
                             />
                           </TableCell>
-                          <TableCell>NPR {parseFloat(order.total_amount).toFixed(2)}</TableCell>
+                          <TableCell> 
+                            {order.prepaid_amount!=0 && (
+                      <div className="text-xs">
+                      Prepaid Amount:{" "}
+                      {order.prepaid_amount?.toLocaleString()}
+                    </div>
+                    )}
+                    <div className="font-medium">
+                      Collection Amount:{" "}
+                      {(
+                        parseFloat(order.total_amount?.toString() ?? "0") -
+                        parseFloat(order.prepaid_amount?.toString() ?? "0")
+                      ).toLocaleString()}
+                    </div>
+                          </TableCell>
                           <TableCell>
                             <Link href={`/track-order/${order.order_code}`}>
                               <Button size="icon" variant="ghost">
@@ -329,7 +343,11 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                           <span className="font-medium">Address:</span> {order.delivery_address}
                         </div>
                         <div className="font-bold text-green-600">
-                          <span>Total:</span> NPR {parseFloat(order.total_amount).toFixed(2)}
+                          <span>Prepaid:</span> Rs. {order.prepaid_amount?.toLocaleString()}<br />
+                          <span>Collection Amount:</span> Rs. {(
+                        parseFloat(order.total_amount?.toString() ?? "0") -
+                        parseFloat(order.prepaid_amount?.toString() ?? "0")
+                      ).toLocaleString()}
                         </div>
                         
                         {/* Contact Buttons - Responsive layout */}

@@ -152,7 +152,6 @@ export function OrdersTable({
                 </TableCell>
                 <TableCell>
                   <div className="bg-gray-600 text-white text-xs px-2 py-1 rounded text-center min-w-[90px]">
-                  
                     <div className="font-medium">
                       {formatDate(order.sent_to_ydm_date).date}
                     </div>
@@ -184,7 +183,11 @@ export function OrdersTable({
                 <TableCell>
                   {isStatusReadOnly(order.order_status) ? (
                     // Show status as a non-interactive badge for read-only statuses
-                    <Badge className={`text-xs font-medium ${getStatusColor(order.order_status)}`}>
+                    <Badge
+                      className={`text-xs font-medium ${getStatusColor(
+                        order.order_status
+                      )}`}
+                    >
                       {order.order_status}
                     </Badge>
                   ) : (
@@ -245,11 +248,19 @@ export function OrdersTable({
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
+                    {order.prepaid_amount!=0 && (
+                      <div className="text-xs">
+                      Prepaid Amount:{" "}
+                      {order.prepaid_amount?.toLocaleString()}
+                    </div>
+                    )}
                     <div className="font-medium">
                       Collection Amount:{" "}
-                      {Number.parseFloat(order.total_amount).toLocaleString()}
+                      {(
+                        parseFloat(order.total_amount?.toString() ?? "0") -
+                        parseFloat(order.prepaid_amount?.toString() ?? "0")
+                      ).toLocaleString()}
                     </div>
-                  
                   </div>
                 </TableCell>
                 <TableCell>
@@ -312,7 +323,7 @@ export function OrdersTable({
               Yes, Change to Return Pending
             </AlertDialogAction>
           </AlertDialogFooter>
-          </AlertDialogContent>
+        </AlertDialogContent>
       </AlertDialog>
     </div>
   );
