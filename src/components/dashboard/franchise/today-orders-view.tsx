@@ -34,9 +34,7 @@ export default function TodayOrdersView({ id }: { id: number }) {
       page: currentPage,
       pageSize,
       search: debouncedSearchOrder || undefined,
-      orderStatus: "Sent to YDM", // Fixed to only show "Sent to YDM" status
-      startDate: today,
-      endDate: today,
+      orderStatus: "Sent to YDM", 
       isAssigned: undefined,
       deliveryType: undefined,
     }),
