@@ -34,7 +34,8 @@ export function OrderSummary({ franchiseId, franchiseName }: OrderSummaryProps) 
     franchise: franchiseId,
     startDate: "",
     endDate: "",
-  
+    orderStatus: "all",
+    
   });
 
   const exportMutation = useLogisticsExport();
@@ -64,7 +65,7 @@ export function OrderSummary({ franchiseId, franchiseName }: OrderSummaryProps) 
           franchise: franchiseId,
           startDate: "",
           endDate: "",
-         
+         orderStatus: "all",
         });
       },
     });
@@ -175,7 +176,29 @@ export function OrderSummary({ franchiseId, franchiseName }: OrderSummaryProps) 
                   </div>
                 </div>
               </div>
-
+    <div>
+                    <Label htmlFor="orderStatus">Order Status</Label>
+                    <Select 
+                      value={filters.orderStatus} 
+                      onValueChange={(value) => updateFilter("orderStatus", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="Sent to YDM">Sent to YDM</SelectItem>
+                        <SelectItem value="Verified">Verified</SelectItem>
+                        <SelectItem value="Delivered">Delivered</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        <SelectItem value="Returned by Customer">Returned by Customer</SelectItem>
+                        <SelectItem value="Return Pending">Return Pending</SelectItem>
+                        <SelectItem value="Returned by YDM">Returned by YDM</SelectItem>
+                        <SelectItem value="Out for Delivery">Out for Delivery</SelectItem>
+                        <SelectItem value="Rescheduled">Rescheduled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
               {/* Export Button */}
               <div className="flex justify-end gap-3 pt-4 border-t">

@@ -1,7 +1,9 @@
+import { OrderStatus } from './../types/order';
 export interface LogisticsExportFilters {
   franchise?: number;
   startDate?: string;
   endDate?: string;
+  orderStatus?:string;
 }
 
 export class LogisticsAPI {
@@ -25,7 +27,9 @@ export class LogisticsAPI {
     if (filters.endDate) {
       params.append("end_date", filters.endDate);
     }
-
+ if (filters.orderStatus && filters.orderStatus !== "all") {
+      params.append("order_status", filters.orderStatus);
+    }
     
 
     const url = `${this.baseURL}/api/logistics/export-orders/?${params.toString()}`;
