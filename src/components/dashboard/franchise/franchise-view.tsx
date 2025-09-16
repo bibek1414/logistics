@@ -23,7 +23,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 
 export default function FranchiseView({ id }: { id: number }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(25);
   const [searchOrder, setSearchOrder] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });

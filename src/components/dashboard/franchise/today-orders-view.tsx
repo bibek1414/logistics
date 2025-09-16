@@ -21,7 +21,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 
 export default function TodayOrdersView({ id }: { id: number }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(25);
   const [searchOrder, setSearchOrder] = useState("");
   const debouncedSearchOrder = useDebounce(searchOrder, 500);
 
