@@ -125,6 +125,14 @@ export function OrderSummary({ franchiseId, franchiseName }: OrderSummaryProps) 
                 
                 {/* Quick Date Range Buttons */}
                 <div className="flex flex-wrap gap-2">
+                   <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuickDateRange(0)}
+                  >
+                    Today
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -141,14 +149,7 @@ export function OrderSummary({ franchiseId, franchiseName }: OrderSummaryProps) 
                   >
                     Last 30 days
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuickDateRange(90)}
-                  >
-                    Last 90 days
-                  </Button>
+                
                 </div>
 
                 {/* Custom Date Range */}
