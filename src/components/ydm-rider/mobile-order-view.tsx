@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, Phone } from "lucide-react";
+import { Eye, LocateIcon, MapPin, Phone, Pin } from "lucide-react";
 import Link from "next/link";
 import { SaleItem, YDMRiderOrderFilters } from "@/types/sales";
 import { CommentDialog } from "@/components/ui/comment-dialog";
@@ -300,7 +300,7 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                       href={`/track-order/${order.order_code}`}
                       className="flex-1 min-w-0"
                     >
-                      <div className="text-xs font-bold text-blue-600 truncate">
+                      <div className="text-xs font-bold text-primary truncate">
                         {order.order_code}
                       </div>
                     </Link>
@@ -347,10 +347,17 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                     />
 
                     <div className="flex items-start gap-2">
-                      <span className="text-lg">📍</span>
-                      <span className="text-sm text-gray-700 leading-5">
+                     <MapPin className="h-4 w-4" />
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          order.delivery_address
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary text-sm"
+                      >
                         {order.delivery_address}
-                      </span>
+                      </a>
                     </div>
                   </div>
 
