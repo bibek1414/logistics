@@ -20,6 +20,7 @@ import { CommentDialog } from "@/components/ui/comment-dialog";
 import { ContactButton } from "./contact-button";
 import { CustomerPhone } from "./customer-phone";
 import { StatusSelector } from "./status-selector";
+import { MobileOrderView } from "./mobile-order-view";
 
 interface YDMRiderOrderListProps {
   orders: SaleItem[]; 
@@ -155,30 +156,6 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
     </div>
   );
 
-  // Loading skeletons for mobile view
-  const MobileSkeleton = () => (
-    <div className="lg:hidden space-y-3">
-      {Array.from({ length: 5 }).map((_, index) => (
-        <Card key={index} className="relative">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-8 w-8 rounded-full" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 text-sm space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-1/2" />
-            <div className="flex items-center gap-2 mt-3">
-              <Skeleton className="h-4 w-12" />
-              <Skeleton className="h-6 w-28" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-
   if (error) {
     return (
       <Card>
@@ -190,8 +167,21 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   }
 
   return (
-    <div className="max-w-7xl px-4 mx-auto">
-      <div>
+    <div className="max-w-7xl ">
+      {/* Mobile View */}
+      <MobileOrderView
+        orders={orders}
+        loading={loading}
+        error={error}
+        totalCount={totalCount}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        onFiltersChange={onFiltersChange}
+        onStatusUpdate={onStatusUpdate}
+      />
+
+      {/* Desktop View */}
+      <div className="hidden lg:block">
         <h1 className="text-xl sm:text-2xl font-bold mb-4">Your Assigned Orders</h1>
         
         {/* Filters */}
@@ -213,16 +203,13 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
       
         <div>
           {loading || isDebouncing ? (
-            <>
-              <DesktopSkeleton />
-              <MobileSkeleton />
-            </>
+            <DesktopSkeleton />
           ) : !orders || orders.length === 0 ? (
             <p className="text-center py-8 text-gray-500">No orders found.</p>
           ) : (
             <>
               {/* Desktop Table View */}
-              <div className="hidden lg:block overflow-x-auto">
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -304,104 +291,24 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                 </Table>
               </div>
 
-              {/* Mobile Card View - Optimized for small screens */}
-              <div className="lg:hidden space-y-3">
-                {orders.map((order, index) => {
-                  const serialNumber = (currentPage - 1) * pageSize + index + 1;
-                  return (
-                    <Card key={String(order.id)} className="relative shadow-none ">
-                      <div className="flex flex-row items-center justify-between p-3 pb-0 space-y-0">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded flex-shrink-0">
-                            {serialNumber}.
-                          </span>
-                          <Link 
-                            href={`/track-order/${order.order_code}`}
-                            className="text-primary hover:text-primary hover:underline flex-1 min-w-0"
-                          >
-                            <CardTitle className="text-sm font-semibold truncate ">
-                              {order.order_code}
-                            </CardTitle>
-                          </Link>
-                        </div>
-                        <Link href={`/track-order/${order.order_code}`} className="ml-2 flex-shrink-0">
-                          <Button size="icon" variant="ghost" className="h-8 w-8">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </div>
-                      <CardContent className="p-3 pt-0 text-xs sm:text-sm space-y-2">
-                        <div className="break-words">
-                          <span className="font-medium">Customer:</span> {order.full_name}
-                        </div>
-                        <CustomerPhone
-                          primaryPhone={order.phone_number}
-                          alternatePhone={order.alternate_phone_number}
-                          onPhoneCall={handlePhoneCall}
-                        />
-                        <div className="break-words">
-                          <span className="font-medium">Address:</span> {order.delivery_address}
-                        </div>
-                        <div className="font-bold text-green-600">
-                          <span>Prepaid:</span> Rs. {order.prepaid_amount?.toLocaleString()}<br />
-                          <span>Collection Amount:</span> Rs. {(
-                        parseFloat(order.total_amount?.toString() ?? "0") -
-                        parseFloat(order.prepaid_amount?.toString() ?? "0")
-                      ).toLocaleString()}
-                        </div>
-                        
-                        {/* Contact Buttons - Responsive layout */}
-                        <div className="flex flex-col gap-2 mt-3 pt-2 border-t border-gray-200">
-                          <div className="flex flex-col xs:flex-row gap-2">
-                            <ContactButton
-                              contacts={[{
-                                phone_number: order.sales_person.phone_number,
-                                first_name: order.sales_person.first_name,
-                                last_name: order.sales_person.last_name,
-                              }]}
-                              buttonText="Contact"
-                            />
-                            <ContactButton
-                              contacts={order.sales_person.franchise_contact_numbers || []}
-                              buttonText=" Contact Franchise"
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Status Update for Mobile - Responsive */}
-                        <StatusSelector
-                          currentStatus={order.order_status}
-                          orderId={String(order.id)}
-                          isUpdating={updatingStatuses.has(String(order.id))}
-                          onStatusChange={handleStatusChange}
-                          isMobile={true}
-                        />
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Pagination - Responsive for small screens */}
+              {/* Pagination - Desktop */}
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-4 gap-3 sm:gap-0">
-                  <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left order-2 sm:order-1">
+                <div className="flex items-center justify-between px-2 py-4">
+                  <div className="text-sm text-gray-500">
                     Showing {(currentPage - 1) * pageSize + 1} to{" "}
                     {Math.min(currentPage * pageSize, totalCount)} of {totalCount} orders
                   </div>
-                  <div className="flex items-center space-x-1 sm:space-x-2 order-1 sm:order-2">
+                  <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="px-2 py-1 h-8 text-xs sm:text-sm"
                     >
-                      <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline ml-1">Previous</span>
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
                     </Button>
                     
-                    {/* Show fewer page numbers on very small screens */}
                     <div className="flex items-center space-x-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         const maxPages = 5;
@@ -422,7 +329,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                             variant={currentPage === pageNum ? "default" : "outline"}
                             size="sm"
                             onClick={() => handlePageChange(pageNum)}
-                            className="w-8 h-8 p-0 text-xs"
+                            className="w-8 h-8 p-0"
                           >
                             {pageNum}
                           </Button>
@@ -435,10 +342,9 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                       size="sm"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="px-2 py-1 h-8 text-xs sm:text-sm"
                     >
-                      <span className="hidden xs:inline mr-1">Next</span>
-                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
                 </div>
