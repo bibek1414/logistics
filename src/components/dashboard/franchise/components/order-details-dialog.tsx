@@ -81,7 +81,8 @@ export function OrderDetailsDialog({
                   <strong>Order Code:</strong> {order.order_code}
                 </div>
                 <div>
-                  <strong>Date:</strong> {formatDate(order.sent_to_ydm_date).date}{" "}
+                  <strong>Date:</strong>{" "}
+                  {formatDate(order.sent_to_ydm_date).date}{" "}
                   {formatDate(order.sent_to_ydm_date).time}
                 </div>
                 <div>
@@ -139,13 +140,6 @@ export function OrderDetailsDialog({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Delivery Charge:</span>
-                <span className="font-medium">
-                  Rs.{" "}
-                  {Number.parseFloat(order.delivery_charge).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
                 <span>Prepaid Amount:</span>
                 <span className="font-medium">
                   Rs.{" "}
@@ -159,8 +153,7 @@ export function OrderDetailsDialog({
                 <span>
                   Rs.{" "}
                   {(
-                    Number.parseFloat(order.total_amount) +
-                    Number.parseFloat(order.delivery_charge) -
+                    Number.parseFloat(order.total_amount) -
                     Number.parseFloat(order.prepaid_amount?.toString() || "0")
                   ).toLocaleString()}
                 </span>
