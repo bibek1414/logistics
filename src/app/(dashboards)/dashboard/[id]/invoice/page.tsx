@@ -1,6 +1,8 @@
 "use client";
 import { useGetInvoices } from "@/hooks/use-invoice";
 import InvoiceTable from "@/components/invoice/invoice-table";
+import type { Invoice } from "@/types/invoice";
+import { downloadInvoicePDF } from "@/components/invoice/utils/pdf-generator";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -106,6 +108,35 @@ export default function InvoicePage() {
         invoices={invoices}
         isLoading={isLoading || isRefetching}
         onCreate={() => router.push(`/dashboard/${idParam}/invoice/create`)}
+        onEdit={(invoiceId) =>
+          router.push(`/dashboard/${idParam}/invoice/${invoiceId}/edit`)
+        }
+        onDownloadPdf={async (inv: Invoice) => {
+          const invoiceData = {
+            invoiceCode: inv.invoice_code,
+            totalAmount: inv.total_amount,
+            paidAmount: inv.paid_amount,
+            dueAmount: inv.due_amount,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            paymentType: (inv.payment_type as any) ?? "Cash",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            status: (inv.status as any) ?? "Pending",
+            franchise: String(inv.franchise),
+            createdBy: "",
+            signedBy: "",
+            signatureDate: "",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            notes: (inv as any).notes ?? "",
+            signature: inv.signature,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any;
+
+          await downloadInvoicePDF(
+            invoiceData,
+            String(inv.franchise),
+            inv.signature ?? undefined
+          );
+        }}
       />
 
       {totalPages > 1 && !isLoading && (

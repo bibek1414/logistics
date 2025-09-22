@@ -108,3 +108,69 @@ export const getTotalAmount = async (franchise: number): Promise<number> => {
   const numericAmount = Number(amount);
   return Number.isFinite(numericAmount) ? numericAmount : 0;
 };
+
+export const getInvoiceById = async (id: number) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/invoice/${id}/`
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}: ${text || "Failed to get invoice by id"}`
+    );
+  }
+  return response.json();
+};
+
+export const updateInvoice = async (
+  id: number,
+  invoice: Record<string, unknown>
+) => {
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(invoice)) {
+    if (value === null || value === undefined) continue;
+
+    if (key === "signature" && value) {
+      if (value instanceof File || value instanceof Blob) {
+        const file = value as File;
+        formData.append(
+          "signature",
+          file,
+          (file as File).name || "signature.png"
+        );
+      } else if (typeof value === "string") {
+        if (value.startsWith("data:")) {
+          const blob = await (await fetch(value)).blob();
+          formData.append("signature", blob, "signature.png");
+        } else {
+          // Skip plain strings for signature if backend requires a file
+          continue;
+        }
+      } else {
+        continue;
+      }
+    } else {
+      formData.append(key, String(value));
+    }
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/invoice/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        // Let the browser set multipart/form-data boundary
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+      body: formData,
+    }
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}: ${text || "Failed to update invoice"}`
+    );
+  }
+  return response.json();
+};

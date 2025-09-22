@@ -17,6 +17,8 @@ type InvoiceTableProps = {
   invoices: Invoice[];
   isLoading?: boolean;
   onCreate?: () => void;
+  onEdit?: (invoiceId: number) => void;
+  onDownloadPdf?: (invoice: Invoice) => void;
 };
 
 const getStatusColor = (status: string) => {
@@ -47,6 +49,8 @@ export function InvoiceTable({
   invoices,
   isLoading = false,
   onCreate,
+  onEdit,
+  onDownloadPdf,
 }: InvoiceTableProps) {
   const router = useRouter();
 
@@ -72,6 +76,7 @@ export function InvoiceTable({
               <TableHead className="font-semibold">Created At</TableHead>
               <TableHead className="font-semibold">Updated At</TableHead>
               <TableHead className="font-semibold">Signature</TableHead>
+              <TableHead className="font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -143,6 +148,28 @@ export function InvoiceTable({
                     ) : (
                       "-"
                     )}
+                  </TableCell>
+                  <TableCell className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        onEdit
+                          ? onEdit(inv.id)
+                          : router.push(
+                              `/dashboard/${inv.franchise}/invoice/${inv.id}/edit`
+                            )
+                      }
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDownloadPdf && onDownloadPdf(inv)}
+                    >
+                      PDF
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

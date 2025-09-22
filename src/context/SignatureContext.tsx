@@ -8,6 +8,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useEffect,
 } from "react";
 
 // Signature Canvas
@@ -122,6 +123,11 @@ export const SignatureContextProvider = ({
   // Colors
   const colors: SignatureColor[] = SIGNATURE_COLORS;
   const [selectedColor, setSelectedColor] = useState<string>(colors[0].color);
+
+  // Keep internal state in sync when initialSignature prop changes (e.g., edit mode prefill)
+  useEffect(() => {
+    setSignatureData(initialSignature || "");
+  }, [initialSignature]);
 
   /**
    * Sets selected signature color

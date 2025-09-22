@@ -16,7 +16,11 @@ import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { SignatureContextProvider } from "@/context/SignatureContext";
 import SignatureModal from "./signature/SignatureModal";
-import { useCreateInvoice, useGetTotalAmount } from "@/hooks/use-invoice";
+import {
+  useCreateInvoice,
+  useGetTotalAmount,
+  useUpdateInvoice,
+} from "@/hooks/use-invoice";
 import { useParams } from "next/navigation";
 import { useFranchises } from "@/hooks/use-franchises";
 import { downloadInvoicePDF } from "./utils/pdf-generator";
@@ -27,7 +31,7 @@ interface InvoiceData {
   paidAmount: string;
   dueAmount: string;
   paymentType: "Cash" | "Bank Transfer" | "Cheque";
-  status: "Draft" | "Partially Paid" | "Pending" | "Paid";
+  status: "Draft" | "Partially Paid" | "Pending" | "Paid" | "Cancelled";
   franchise: string;
   createdBy: string;
   signedBy: string;
@@ -36,10 +40,32 @@ interface InvoiceData {
   signature?: File | string | null;
 }
 
-export default function InvoiceCreateView() {
+type Mode = "create" | "edit";
+
+type Props = {
+  mode?: Mode;
+  initialInvoice?: {
+    id: number;
+    franchise: number;
+    invoice_code: string;
+    total_amount: string;
+    paid_amount: string;
+    due_amount: string;
+    payment_type: "Cash" | "Bank Transfer" | "Cheque" | string;
+    status: "Pending" | "Partially Paid" | "Paid" | "Cancelled" | string;
+    notes: string;
+    signature: string | null;
+  } | null;
+};
+
+export default function InvoiceCreateView({
+  mode = "create",
+  initialInvoice,
+}: Props) {
   const params = useParams<{ id: string }>();
   const franchiseParamId = (params?.id ?? "").toString();
-  const { mutate, isPending } = useCreateInvoice();
+  const { mutate: createMutate, isPending: isCreating } = useCreateInvoice();
+  const { mutate: updateMutate, isPending: isUpdating } = useUpdateInvoice();
   const { data: totalAmount } = useGetTotalAmount(Number(franchiseParamId));
   const { franchises } = useFranchises();
   const selectedFranchiseName = franchises.find(
@@ -59,6 +85,25 @@ export default function InvoiceCreateView() {
     notes: "",
     signature: null,
   });
+
+  // Prefill in edit mode
+  useEffect(() => {
+    if (mode === "edit" && initialInvoice) {
+      setInvoiceData((prev) => ({
+        ...prev,
+        invoiceCode: initialInvoice.invoice_code || "",
+        totalAmount: initialInvoice.total_amount || "",
+        paidAmount: initialInvoice.paid_amount || "",
+        dueAmount: initialInvoice.due_amount || "",
+        paymentType:
+          (initialInvoice.payment_type as InvoiceData["paymentType"]) || "Cash",
+        status: (initialInvoice.status as InvoiceData["status"]) || "Draft",
+        franchise: String(initialInvoice.franchise || franchiseParamId),
+        notes: initialInvoice.notes || "",
+        signature: initialInvoice.signature || null,
+      }));
+    }
+  }, [mode, initialInvoice, franchiseParamId]);
 
   // Derived signature preview URL for rendering drawn/uploaded signature in the preview
   const [signaturePreviewUrl, setSignaturePreviewUrl] = useState<string>("");
@@ -108,12 +153,14 @@ export default function InvoiceCreateView() {
     });
   };
 
-  // Sync total amount from API
+  // Sync total amount from API only in create mode
   useEffect(() => {
-    if (typeof totalAmount === "number" && !Number.isNaN(totalAmount)) {
-      updateField("totalAmount", totalAmount.toString());
+    if (mode === "create") {
+      if (typeof totalAmount === "number" && !Number.isNaN(totalAmount)) {
+        updateField("totalAmount", totalAmount.toString());
+      }
     }
-  }, [totalAmount]);
+  }, [totalAmount, mode]);
 
   const fileToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -147,7 +194,11 @@ export default function InvoiceCreateView() {
         signature: signaturePayload,
       };
 
-      mutate(payload as unknown as Record<string, unknown>);
+      if (mode === "edit" && initialInvoice) {
+        updateMutate({ id: initialInvoice.id, invoice: payload });
+      } else {
+        createMutate(payload as unknown as Record<string, unknown>);
+      }
     } catch (e) {
       // errors are surfaced via toast in the mutation onError
       console.error(e);
@@ -187,8 +238,23 @@ export default function InvoiceCreateView() {
         }
       }
 
+      // Sanitize status for PDF generator which expects limited union
+      const pdfData = {
+        ...invoiceData,
+        status:
+          invoiceData.status === "Cancelled"
+            ? "Pending"
+            : (invoiceData.status as Exclude<
+                InvoiceData["status"],
+                "Cancelled"
+              >),
+      } as Omit<InvoiceData, "status"> & {
+        status: "Draft" | "Partially Paid" | "Pending" | "Paid";
+      };
+
       await downloadInvoicePDF(
-        invoiceData,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        pdfData as unknown as any,
         selectedFranchiseName || invoiceData.franchise,
         signatureUrl
       );
@@ -396,11 +462,18 @@ export default function InvoiceCreateView() {
               <Button
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateInvoice}
-                disabled={isPending}
+                disabled={isCreating || isUpdating}
               >
-                {isPending ? "Generating..." : "Generate Invoice"}
+                {isCreating || isUpdating
+                  ? "Saving..."
+                  : mode === "edit"
+                  ? "Update Invoice"
+                  : "Generate Invoice"}
               </Button>
-              <Button onClick={handleDownloadPDF} disabled={isPending}>
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={isCreating || isUpdating}
+              >
                 Download Invoice
               </Button>
             </CardContent>
