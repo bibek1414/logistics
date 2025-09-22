@@ -90,3 +90,21 @@ export const getInvoices = async (
   }
   return response.json();
 };
+
+export const getTotalAmount = async (franchise: number): Promise<number> => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/franchise/${franchise}/total-pending-cod/`
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}: ${text || "Failed to get total amount"}`
+    );
+  }
+
+  const json = await response.json();
+  const amount = json?.data?.amount;
+  const numericAmount = Number(amount);
+  return Number.isFinite(numericAmount) ? numericAmount : 0;
+};

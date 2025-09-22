@@ -1,6 +1,7 @@
 import {
   createInvoice,
   getInvoices,
+  getTotalAmount,
   InvoiceFilters,
 } from "@/services/invoice.service";
 import type { PaginatedInvoiceResponse } from "@/types/invoice";
@@ -25,6 +26,14 @@ export const useGetInvoices = (filters?: InvoiceFilters) => {
   return useQuery<PaginatedInvoiceResponse, Error>({
     queryKey: ["invoices", filters],
     queryFn: () => getInvoices(filters),
+    placeholderData: (prev) => prev,
+  });
+};
+
+export const useGetTotalAmount = (franchise: number) => {
+  return useQuery<number, Error>({
+    queryKey: ["total-amount", franchise],
+    queryFn: () => getTotalAmount(franchise),
     placeholderData: (prev) => prev,
   });
 };

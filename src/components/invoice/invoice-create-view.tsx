@@ -16,9 +16,10 @@ import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { SignatureContextProvider } from "@/context/SignatureContext";
 import SignatureModal from "./signature/SignatureModal";
-import { useCreateInvoice } from "@/hooks/use-invoice";
+import { useCreateInvoice, useGetTotalAmount } from "@/hooks/use-invoice";
 import { useParams } from "next/navigation";
 import { useFranchises } from "@/hooks/use-franchises";
+import { downloadInvoicePDF } from "./utils/pdf-generator";
 
 interface InvoiceData {
   invoiceCode: string;
@@ -36,9 +37,10 @@ interface InvoiceData {
 }
 
 export default function InvoiceCreateView() {
-  const { mutate, isPending, isError, error } = useCreateInvoice();
   const params = useParams<{ id: string }>();
   const franchiseParamId = (params?.id ?? "").toString();
+  const { mutate, isPending } = useCreateInvoice();
+  const { data: totalAmount } = useGetTotalAmount(Number(franchiseParamId));
   const { franchises } = useFranchises();
   const selectedFranchiseName = franchises.find(
     (f) => f.id === Number(franchiseParamId)
@@ -106,6 +108,13 @@ export default function InvoiceCreateView() {
     });
   };
 
+  // Sync total amount from API
+  useEffect(() => {
+    if (typeof totalAmount === "number" && !Number.isNaN(totalAmount)) {
+      updateField("totalAmount", totalAmount.toString());
+    }
+  }, [totalAmount]);
+
   const fileToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -159,6 +168,35 @@ export default function InvoiceCreateView() {
     setInvoiceData((prev) => ({ ...prev, signature: file }));
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      let signatureUrl: string | undefined;
+
+      // Convert signature to data URL if it exists
+      if (invoiceData.signature) {
+        if (typeof invoiceData.signature === "string") {
+          signatureUrl = invoiceData.signature;
+        } else {
+          // Convert File to data URL
+          signatureUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(invoiceData.signature as File);
+          });
+        }
+      }
+
+      await downloadInvoicePDF(
+        invoiceData,
+        selectedFranchiseName || invoiceData.franchise,
+        signatureUrl
+      );
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      // You can add toast notification here for error handling
+    }
+  };
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="mx-auto max-w-7xl">
@@ -247,6 +285,7 @@ export default function InvoiceCreateView() {
                       type="number"
                       step="0.01"
                       placeholder="0.00"
+                      readOnly
                       value={invoiceData.totalAmount}
                       onChange={(e) =>
                         updateField("totalAmount", e.target.value)
@@ -361,6 +400,9 @@ export default function InvoiceCreateView() {
               >
                 {isPending ? "Generating..." : "Generate Invoice"}
               </Button>
+              <Button onClick={handleDownloadPDF} disabled={isPending}>
+                Download Invoice
+              </Button>
             </CardContent>
           </Card>
 
@@ -413,7 +455,7 @@ export default function InvoiceCreateView() {
                         Invoice To
                       </h3>
                       <div className="space-y-2">
-                        <p className="text-black font-bold text-lg">
+                        <p className="text-black font-bold text-lg capitalize">
                           {selectedFranchiseName ||
                             invoiceData.franchise ||
                             "Franchise Name"}
