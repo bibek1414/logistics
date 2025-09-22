@@ -1,6 +1,8 @@
 import {
+  commentOnInvoice,
   createInvoice,
   getInvoiceById,
+  getInvoiceComments,
   getInvoices,
   getTotalAmount,
   InvoiceFilters,
@@ -64,6 +66,32 @@ export const useUpdateInvoice = () => {
     },
     onError: (error: Error) => {
       toast.error(`Failed to update invoice: ${error.message}`);
+    },
+  });
+};
+
+export const useGetInvoiceComments = (invoiceId: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return useQuery<any[], Error>({
+    queryKey: ["invoice-comments", invoiceId],
+    queryFn: () => getInvoiceComments(invoiceId),
+    placeholderData: (prev) => prev,
+    enabled: !!invoiceId,
+  });
+};
+
+export const useCommentOnInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, comments }: { id: number; comments: string }) =>
+      commentOnInvoice(id, comments),
+    onSuccess: (_, { id }) => {
+      toast.success("Comment added successfully");
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoice-comments", id] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to comment on invoice: ${error.message}`);
     },
   });
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { InvoiceCommentDialog } from "./invoice-comment-dialog";
 import type { Invoice } from "@/types/invoice";
 
 type InvoiceTableProps = {
@@ -53,6 +55,17 @@ export function InvoiceTable({
   onDownloadPdf,
 }: InvoiceTableProps) {
   const router = useRouter();
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(
+    null
+  );
+  const [selectedInvoiceCode, setSelectedInvoiceCode] = useState<string>("");
+
+  const handleCommentClick = (invoiceId: number, invoiceCode: string) => {
+    setSelectedInvoiceId(invoiceId);
+    setSelectedInvoiceCode(invoiceCode);
+    setCommentDialogOpen(true);
+  };
 
   return (
     <div className="space-y-4 mx-auto max-w-7xl">
@@ -170,6 +183,15 @@ export function InvoiceTable({
                     >
                       PDF
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleCommentClick(inv.id, inv.invoice_code)
+                      }
+                    >
+                      Comments
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -177,6 +199,16 @@ export function InvoiceTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Comment Dialog */}
+      {selectedInvoiceId && (
+        <InvoiceCommentDialog
+          open={commentDialogOpen}
+          onOpenChange={setCommentDialogOpen}
+          invoiceId={selectedInvoiceId}
+          invoiceCode={selectedInvoiceCode}
+        />
+      )}
     </div>
   );
 }

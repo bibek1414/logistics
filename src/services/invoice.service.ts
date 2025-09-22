@@ -174,3 +174,42 @@ export const updateInvoice = async (
   }
   return response.json();
 };
+
+export const getInvoiceComments = async (invoiceId: number) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/invoice-report/?invoice=${invoiceId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    }
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}: ${text || "Failed to get invoice comments"}`
+    );
+  }
+  return response.json();
+};
+
+export const commentOnInvoice = async (id: number, comments: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/logistics/invoice-report/`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ invoice: id, comment: comments }),
+    }
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `HTTP ${response.status}: ${text || "Failed to comment on invoice"}`
+    );
+  }
+  return response.json();
+};
