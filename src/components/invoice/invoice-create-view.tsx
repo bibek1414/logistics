@@ -138,7 +138,7 @@ export default function InvoiceCreateView() {
         signature: signaturePayload,
       };
 
-      mutate(payload as any);
+      mutate(payload as unknown as Record<string, unknown>);
     } catch (e) {
       // errors are surfaced via toast in the mutation onError
       console.error(e);
@@ -155,31 +155,6 @@ export default function InvoiceCreateView() {
         })}`;
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Not specified";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Draft":
-        return "text-muted-foreground";
-      case "Partially Paid":
-        return "text-blue-500";
-      case "Pending":
-        return "text-yellow-500";
-      case "Paid":
-        return "text-green-500";
-      default:
-        return "text-muted-foreground";
-    }
-  };
-
   const handleSignatureChange = (file: File | null) => {
     setInvoiceData((prev) => ({ ...prev, signature: file }));
   };
@@ -188,12 +163,7 @@ export default function InvoiceCreateView() {
     <div className="min-h-screen bg-background p-4">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Invoice Generator
-          </h1>
-          <p className="text-muted-foreground">
-            Create professional invoices with live preview
-          </p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Invoice</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

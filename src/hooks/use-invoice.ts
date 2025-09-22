@@ -1,5 +1,10 @@
-import { createInvoice } from "@/services/invoice.service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  createInvoice,
+  getInvoices,
+  InvoiceFilters,
+} from "@/services/invoice.service";
+import type { PaginatedInvoiceResponse } from "@/types/invoice";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const useCreateInvoice = () => {
@@ -13,5 +18,13 @@ export const useCreateInvoice = () => {
     onError: (error: Error) => {
       toast.error(`Failed to create invoice: ${error.message}`);
     },
+  });
+};
+
+export const useGetInvoices = (filters?: InvoiceFilters) => {
+  return useQuery<PaginatedInvoiceResponse, Error>({
+    queryKey: ["invoices", filters],
+    queryFn: () => getInvoices(filters),
+    placeholderData: (prev) => prev,
   });
 };
