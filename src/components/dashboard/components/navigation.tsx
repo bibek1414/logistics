@@ -19,7 +19,7 @@ export function Navigation() {
   const isReturnPendingPage = pathname === `${basePath}/return-pending`;
   const isOrderSummaryPage = pathname === `${basePath}/order-summary`;
   const isInvoicePage = pathname === `${basePath}/invoice`;
-  // const isStatementPage = pathname === `${basePath}/statement`;
+  const isStatementPage = pathname === `${basePath}/statement`;
 
   // Find the current franchise based on the dashboard ID
   const currentFranchise = useMemo(() => {
@@ -58,11 +58,11 @@ export function Navigation() {
         label: "Invoice",
         isActive: isInvoicePage,
       },
-      // {
-      //   href: `${basePath}/statement`,
-      //   label: "Statement",
-      //   isActive: isStatementPage,
-      // },
+      {
+        href: `${basePath}/statement`,
+        label: "Statement",
+        isActive: isStatementPage,
+      },
     ],
     [
       basePath,
@@ -72,6 +72,7 @@ export function Navigation() {
       isReturnPendingPage,
       isOrderSummaryPage,
       isInvoicePage,
+      isStatementPage,
     ]
   );
 
