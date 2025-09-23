@@ -145,7 +145,13 @@ export function InvoiceTable({
                       {inv.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{inv.is_approved ? "Yes" : "No"}</TableCell>
+                  <TableCell
+                    className={`${
+                      inv.is_approved ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {inv.is_approved ? "Yes" : "No"}
+                  </TableCell>
                   <TableCell>{formatDateTime(inv.created_at)}</TableCell>
                   <TableCell>{formatDateTime(inv.updated_at)}</TableCell>
                   <TableCell>

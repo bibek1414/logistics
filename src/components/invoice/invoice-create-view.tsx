@@ -21,7 +21,7 @@ import {
   useGetTotalAmount,
   useUpdateInvoice,
 } from "@/hooks/use-invoice";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useFranchises } from "@/hooks/use-franchises";
 import { downloadInvoicePDF } from "./utils/pdf-generator";
 
@@ -62,6 +62,7 @@ export default function InvoiceCreateView({
   mode = "create",
   initialInvoice,
 }: Props) {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const franchiseParamId = (params?.id ?? "").toString();
   const { mutate: createMutate, isPending: isCreating } = useCreateInvoice();
@@ -196,8 +197,10 @@ export default function InvoiceCreateView({
 
       if (mode === "edit" && initialInvoice) {
         updateMutate({ id: initialInvoice.id, invoice: payload });
+        router.push(`/dashboard/${franchiseParamId}/invoice`);
       } else {
         createMutate(payload as unknown as Record<string, unknown>);
+        router.push(`/dashboard/${franchiseParamId}/invoice`);
       }
     } catch (e) {
       // errors are surfaced via toast in the mutation onError
