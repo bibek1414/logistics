@@ -33,8 +33,10 @@ const DeliveryTable: React.FC<Props> = ({ data }) => {
           <TableHeader>
             <TableRow className="border-gray-100">
               <TableHead className="font-semibold">Date</TableHead>
+              <TableHead className="font-semibold">Total Orders</TableHead>
+              <TableHead className="font-semibold">Total Amount</TableHead>
               <TableHead className="font-semibold">Delivery Count</TableHead>
-              <TableHead className="font-semibold">Cash In</TableHead>
+              <TableHead className="font-semibold">Delivered Amount</TableHead>
               <TableHead className="font-semibold">Delivery Charge</TableHead>
               <TableHead className="font-semibold">Payment</TableHead>
               <TableHead className="font-semibold">Balance</TableHead>
@@ -47,6 +49,8 @@ const DeliveryTable: React.FC<Props> = ({ data }) => {
                 className="border-gray-50 hover:bg-gray-50/50"
               >
                 <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
+                <TableCell>{row.total_order}</TableCell>
+                <TableCell>{row.total_amount}</TableCell>
                 <TableCell>{row.delivery_count}</TableCell>
                 <TableCell className="font-medium">
                   {Number(row.cash_in).toLocaleString()}

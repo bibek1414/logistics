@@ -5,6 +5,8 @@ export interface StatementApiResponse {
   dashboard_pending_cod: number;
   dashboard_breakdown: {
     delivered_amount: number;
+    total_order: number;
+    total_amount: number;
     total_charge: number;
     approved_paid: number;
     delivered_count: number;
@@ -20,6 +22,8 @@ export interface StatementRow {
   delivery_charge: number | string;
   payment: number | string;
   balance: number | string;
+  total_order: number | string;
+  total_amount: number | string;
 }
 
 export interface PaginatedStatementResponse {
