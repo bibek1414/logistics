@@ -40,7 +40,7 @@ export function Navigation() {
       },
       {
         href: `${basePath}/today-orders`,
-        label: "Today Orders",
+        label: "Pending Orders",
         isActive: isTodayOrdersPage,
       },
       {
