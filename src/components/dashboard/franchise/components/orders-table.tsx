@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
 import {
   AlertDialog,
@@ -35,7 +34,6 @@ import { SearchableAgentSelect } from "./searchable-agent-select";
 import { useRouter } from "next/navigation";
 import { EditOrderDialog } from "./edit-order-dialog";
 import { useEditOrder } from "@/hooks/use-edit-order";
-import { useVerifyOrder } from "@/hooks/use-verify-order";
 
 interface OrdersTableProps {
   orders: SaleItem[];
@@ -94,11 +92,6 @@ export function OrdersTable({
       });
       setPendingReturnOrder(null);
     }
-  };
-
-  const isStatusReadOnly = (status: string) => {
-    const readOnlyStatuses = ["Return Pending", "Returned By YDM", "Cancelled"];
-    return readOnlyStatuses.includes(status);
   };
 
   return (
@@ -181,78 +174,67 @@ export function OrdersTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  {isStatusReadOnly(order.order_status) ? (
-                    // Show status as a non-interactive badge for read-only statuses
-                    <Badge
-                      className={`text-xs font-medium ${getStatusColor(
+                  <Select
+                    value={order.order_status}
+                    onValueChange={(value) => {
+                      if (
+                        order.order_status === "Sent to YDM" &&
+                        onVerifyOrder
+                      ) {
+                        onVerifyOrder(order.id.toString(), value);
+                      } else {
+                        handleStatusChange(order.id.toString(), value);
+                      }
+                    }}
+                    disabled={
+                      isEditingOrder || verifyingOrders.has(order.id.toString())
+                    }
+                  >
+                    <SelectTrigger
+                      className={`w-full h-8 text-xs font-medium ${getStatusColor(
                         order.order_status
                       )}`}
                     >
-                      {order.order_status}
-                    </Badge>
-                  ) : (
-                    // Show dropdown for editable statuses
-                    <Select
-                      value={order.order_status}
-                      onValueChange={(value) => {
-                        if (
-                          order.order_status === "Sent to YDM" &&
-                          onVerifyOrder
-                        ) {
-                          onVerifyOrder(order.id.toString(), value);
-                        } else {
-                          handleStatusChange(order.id.toString(), value);
-                        }
-                      }}
-                      disabled={
-                        isEditingOrder ||
-                        verifyingOrders.has(order.id.toString())
-                      }
-                    >
-                      <SelectTrigger
-                        className={`w-full h-8 text-xs font-medium ${getStatusColor(
-                          order.order_status
-                        )}`}
-                      >
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {order.order_status === "Sent to YDM" ? (
-                          <>
-                            <SelectItem value="Sent to YDM" disabled>
-                              Sent to YDM
-                            </SelectItem>
-                            <SelectItem value="Verified">Verify</SelectItem>
-                            <SelectItem value="Return Pending">
-                              Return Pending
-                            </SelectItem>
-                          </>
-                        ) : (
-                          <>
-                            <SelectItem value="Verified">Verified</SelectItem>
-                            <SelectItem value="Rescheduled">
-                              Rescheduled
-                            </SelectItem>
-                            <SelectItem value="Delivered">Delivered</SelectItem>
-                            <SelectItem value="Return Pending">
-                              Return Pending
-                            </SelectItem>
-                            <SelectItem value="Out For Delivery">
-                              Out For Delivery
-                            </SelectItem>
-                          </>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {order.order_status === "Sent to YDM" ? (
+                        <>
+                          <SelectItem value="Sent to YDM" disabled>
+                            Sent to YDM
+                          </SelectItem>
+                          <SelectItem value="Verified">Verify</SelectItem>
+                          <SelectItem value="Return Pending">
+                            Return Pending
+                          </SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="Sent to YDM">
+                            Sent to YDM
+                          </SelectItem>
+                          <SelectItem value="Verified">Verified</SelectItem>
+                          <SelectItem value="Rescheduled">
+                            Rescheduled
+                          </SelectItem>
+                          <SelectItem value="Delivered">Delivered</SelectItem>
+                          <SelectItem value="Return Pending">
+                            Return Pending
+                          </SelectItem>
+                          <SelectItem value="Out For Delivery">
+                            Out For Delivery
+                          </SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    {order.prepaid_amount!=0 && (
+                    {order.prepaid_amount != 0 && (
                       <div className="text-xs">
-                      Prepaid Amount:{" "}
-                      {order.prepaid_amount?.toLocaleString()}
-                    </div>
+                        Prepaid Amount: {order.prepaid_amount?.toLocaleString()}
+                      </div>
                     )}
                     <div className="font-medium">
                       Collection Amount:{" "}
@@ -274,14 +256,11 @@ export function OrdersTable({
                       }
                       disabled={
                         assigningOrders.has(order.id.toString()) ||
-                        order.order_status === "Sent to YDM" ||
-                        isStatusReadOnly(order.order_status)
+                        order.order_status === "Sent to YDM"
                       }
                       placeholder={
                         order.order_status === "Sent to YDM"
                           ? "Verify order first"
-                          : isStatusReadOnly(order.order_status)
-                          ? "Cannot assign rider"
                           : order.ydm_rider
                           ? "Reassign Rider"
                           : "Assign Rider"
@@ -313,8 +292,7 @@ export function OrdersTable({
             <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to change this order status to &apos;Return
-              Pending&apos;? This action will disable further status changes and
-              rider assignments.
+              Pending&apos;?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
