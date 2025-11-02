@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useFranchises } from "@/hooks/use-franchises";
 
 export default function InvoicePage() {
   const router = useRouter();
@@ -35,6 +36,17 @@ export default function InvoicePage() {
     isApproved,
     franchise: franchiseId,
   });
+
+  const { franchises } = useFranchises();
+
+  // Create a map for quick franchise name lookup
+  const franchiseNameMap = useMemo(() => {
+    const map = new Map<number, string>();
+    franchises.forEach((franchise) => {
+      map.set(franchise.id, franchise.name);
+    });
+    return map;
+  }, [franchises]);
 
   const invoices = data?.results ?? [];
   const totalCount = data?.count ?? 0;
@@ -131,9 +143,13 @@ export default function InvoicePage() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any;
 
+          // Get franchise name from the map, fallback to ID if not found
+          const franchiseName =
+            franchiseNameMap.get(inv.franchise) || `Franchise ${inv.franchise}`;
+
           await downloadInvoicePDF(
             invoiceData,
-            String(inv.franchise),
+            franchiseName,
             inv.signature ?? undefined
           );
         }}

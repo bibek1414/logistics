@@ -164,7 +164,7 @@ export async function generateInvoicePDF(
 
   currentY -= 25;
 
-  page.drawText(franchiseName || invoiceData.franchise || "Franchise Name", {
+  page.drawText(franchiseName || "Franchise Name", {
     x: 50,
     y: currentY,
     size: 14,
