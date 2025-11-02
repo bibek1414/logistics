@@ -27,6 +27,7 @@ export default function ReturnPendingView({ id }: { id: number }) {
   const [searchOrder, setSearchOrder] = useState("");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [filterDeliveryType, setFilterDeliveryType] = useState("all");
+  const [showPendingOrders, setShowPendingOrders] = useState(false);
   const debouncedSearchOrder = useDebounce(searchOrder, 500);
 
   // Build filters for API - only show "Return Pending" orders
@@ -35,27 +36,21 @@ export default function ReturnPendingView({ id }: { id: number }) {
       page: currentPage,
       pageSize,
       search: debouncedSearchOrder || undefined,
-      orderStatus: "Return Pending", 
+      orderStatus: "Return Pending",
       deliveryType:
         filterDeliveryType !== "all" ? filterDeliveryType : undefined,
       startDate: dateRange.from || undefined,
       endDate: dateRange.to || undefined,
-      isAssigned: undefined, 
+      isAssigned: undefined,
     }),
-    [
-      currentPage,
-      pageSize,
-      debouncedSearchOrder,
-      filterDeliveryType,
-      dateRange,
-    ]
+    [currentPage, pageSize, debouncedSearchOrder, filterDeliveryType, dateRange]
   );
 
   // Fetch data using the hook
   const { franchise, isLoading, isError, error } = useFranchise(id, filters);
 
   const { mutate: verifyOrder } = useVerifyOrder();
-  
+
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [verifyingOrders, setVerifyingOrders] = useState<Set<string>>(
     new Set()
@@ -128,7 +123,9 @@ export default function ReturnPendingView({ id }: { id: number }) {
             },
             onError: (error) => {
               console.error("Bulk verification failed:", error);
-              setVerificationSuccess("Bulk verification failed. Please try again.");
+              setVerificationSuccess(
+                "Bulk verification failed. Please try again."
+              );
               setTimeout(() => setVerificationSuccess(null), 3000);
               resolve(false);
             },
@@ -206,7 +203,8 @@ export default function ReturnPendingView({ id }: { id: number }) {
       searchOrder !== "" ||
       dateRange.from !== "" ||
       dateRange.to !== "" ||
-      filterDeliveryType !== "all"
+      filterDeliveryType !== "all" ||
+      showPendingOrders
     );
   };
 
@@ -214,6 +212,7 @@ export default function ReturnPendingView({ id }: { id: number }) {
     setSearchOrder("");
     setDateRange({ from: "", to: "" });
     setFilterDeliveryType("all");
+    setShowPendingOrders(false);
     setCurrentPage(1);
   };
 
@@ -221,7 +220,9 @@ export default function ReturnPendingView({ id }: { id: number }) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="text-red-600 mb-2">Error loading return pending orders</div>
+          <div className="text-red-600 mb-2">
+            Error loading return pending orders
+          </div>
           <div className="text-sm text-gray-600">{error?.message}</div>
         </div>
       </div>
@@ -231,25 +232,32 @@ export default function ReturnPendingView({ id }: { id: number }) {
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col gap-4">
-       
-
         {/* Success/Error messages */}
         {verificationSuccess && (
-          <div className={`border rounded-lg p-3 flex items-center gap-2 ${
-            verificationSuccess.includes("Failed") || verificationSuccess.includes("failed")
-              ? "bg-red-50 border-red-200"
-              : "bg-green-50 border-green-200"
-          }`}>
-            <CheckCircle className={`w-5 h-5 ${
-              verificationSuccess.includes("Failed") || verificationSuccess.includes("failed")
-                ? "text-red-600"
-                : "text-green-600"
-            }`} />
-            <span className={`text-sm font-medium ${
-              verificationSuccess.includes("Failed") || verificationSuccess.includes("failed")
-                ? "text-red-800"
-                : "text-green-800"
-            }`}>
+          <div
+            className={`border rounded-lg p-3 flex items-center gap-2 ${
+              verificationSuccess.includes("Failed") ||
+              verificationSuccess.includes("failed")
+                ? "bg-red-50 border-red-200"
+                : "bg-green-50 border-green-200"
+            }`}
+          >
+            <CheckCircle
+              className={`w-5 h-5 ${
+                verificationSuccess.includes("Failed") ||
+                verificationSuccess.includes("failed")
+                  ? "text-red-600"
+                  : "text-green-600"
+              }`}
+            />
+            <span
+              className={`text-sm font-medium ${
+                verificationSuccess.includes("Failed") ||
+                verificationSuccess.includes("failed")
+                  ? "text-red-800"
+                  : "text-green-800"
+              }`}
+            >
               {verificationSuccess}
             </span>
           </div>
@@ -266,7 +274,7 @@ export default function ReturnPendingView({ id }: { id: number }) {
                   Return Pending Orders
                 </CardTitle>
               </div>
-              
+
               {/* Filters - simplified for return pending */}
               <OrderFilters
                 searchOrder={searchOrder}
@@ -281,20 +289,20 @@ export default function ReturnPendingView({ id }: { id: number }) {
                 clearAllFilters={clearAllFilters}
                 filterIsAssigned="all" // Not relevant for return pending
                 setFilterIsAssigned={() => {}} // No-op
+                showPendingOrders={showPendingOrders}
+                setShowPendingOrders={setShowPendingOrders}
               />
             </div>
           </CardHeader>
-        <div className="">
-          
-          {selectedOrders.size > 0 && (
-            <BulkExport
-              selectedOrders={selectedOrders}
-              orders={orders}
-              filename="return-pending-orders"
-            />
-            
-          )}
-        </div>
+          <div className="">
+            {selectedOrders.size > 0 && (
+              <BulkExport
+                selectedOrders={selectedOrders}
+                orders={orders}
+                filename="return-pending-orders"
+              />
+            )}
+          </div>
           <CardContent className="p-0">
             <div className="px-4 py-2 bg-amber-50 border-b text-sm text-amber-800 font-medium">
               Showing {orders.length} of {totalCount} return pending orders
@@ -310,12 +318,13 @@ export default function ReturnPendingView({ id }: { id: number }) {
               )}
               {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}
             </div>
-            
 
             {isLoading ? (
               <div className="p-6 flex items-center justify-center min-h-[200px]">
                 <Clock className="w-5 h-5 animate-spin text-gray-500" />
-                <span className="ml-2 text-gray-600">Loading return pending orders...</span>
+                <span className="ml-2 text-gray-600">
+                  Loading return pending orders...
+                </span>
               </div>
             ) : (
               <OrdersTable
@@ -325,9 +334,9 @@ export default function ReturnPendingView({ id }: { id: number }) {
                 selectedOrders={selectedOrders}
                 toggleOrderSelection={toggleOrderSelection}
                 toggleAllOrders={toggleAllOrders}
-                orderAssignments={{}} 
-                assigningOrders={new Set()} 
-                handleAssignOrder={() => {}} 
+                orderAssignments={{}}
+                assigningOrders={new Set()}
+                handleAssignOrder={() => {}}
                 getStatusColor={getStatusColor}
                 formatDate={formatDate}
                 onVerifyOrder={handleVerifyOrder}

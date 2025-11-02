@@ -34,6 +34,7 @@ export default function FranchiseView({ id }: { id: number }) {
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [filterDeliveryType, setFilterDeliveryType] = useState("all");
   const [filterIsAssigned, setFilterIsAssigned] = useState("all");
+  const [showPendingOrders, setShowPendingOrders] = useState(false);
   const debouncedSearchOrder = useDebounce(searchOrder, 500);
 
   // Build filters for API
@@ -83,7 +84,20 @@ export default function FranchiseView({ id }: { id: number }) {
   );
   const [isBulkVerifying, setIsBulkVerifying] = useState(false);
 
-  const orders = franchise?.results || [];
+  const allOrders = franchise?.results || [];
+
+  // Filter orders for pending orders switch
+  const orders = useMemo(() => {
+    if (showPendingOrders) {
+      return allOrders.filter(
+        (order) =>
+          order.order_status === "Sent to YDM" ||
+          order.order_status === "Verified"
+      );
+    }
+    return allOrders;
+  }, [allOrders, showPendingOrders]);
+
   const totalCount = franchise?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -410,7 +424,8 @@ export default function FranchiseView({ id }: { id: number }) {
       dateRange.from !== "" ||
       dateRange.to !== "" ||
       filterDeliveryType !== "all" ||
-      filterIsAssigned !== "all"
+      filterIsAssigned !== "all" ||
+      showPendingOrders
     );
   };
 
@@ -420,6 +435,7 @@ export default function FranchiseView({ id }: { id: number }) {
     setDateRange({ from: "", to: "" });
     setFilterDeliveryType("all");
     setFilterIsAssigned("all");
+    setShowPendingOrders(false);
     setCurrentPage(1);
   };
 
@@ -534,12 +550,15 @@ export default function FranchiseView({ id }: { id: number }) {
                 clearAllFilters={clearAllFilters}
                 filterIsAssigned={filterIsAssigned}
                 setFilterIsAssigned={setFilterIsAssigned}
+                showPendingOrders={showPendingOrders}
+                setShowPendingOrders={setShowPendingOrders}
               />
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
-              Showing {orders.length} of {totalCount} orders
+              Showing {orders.length} of{" "}
+              {showPendingOrders ? allOrders.length : totalCount} orders
               {(dateRange.from || dateRange.to) && (
                 <span>
                   {" • Date: "}
@@ -553,6 +572,7 @@ export default function FranchiseView({ id }: { id: number }) {
               {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}
               {filterStatus !== "all" && ` • Status: ${filterStatus}`}
               {filterIsAssigned !== "all" && ` • Assigned: ${filterIsAssigned}`}
+              {showPendingOrders && ` • Pending Orders (Sent to YDM, Verified)`}
             </div>
 
             {isLoading ? (

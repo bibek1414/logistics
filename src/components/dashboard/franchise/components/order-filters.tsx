@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Search, Calendar, MapPin, Filter } from "lucide-react";
 
 interface OrderFiltersProps {
@@ -24,6 +25,8 @@ interface OrderFiltersProps {
   clearAllFilters: () => void;
   filterIsAssigned: string;
   setFilterIsAssigned: (value: string) => void;
+  showPendingOrders: boolean;
+  setShowPendingOrders: (value: boolean) => void;
 }
 
 export function OrderFilters({
@@ -39,6 +42,8 @@ export function OrderFilters({
   clearAllFilters,
   filterIsAssigned,
   setFilterIsAssigned,
+  showPendingOrders,
+  setShowPendingOrders,
 }: OrderFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
@@ -122,18 +127,27 @@ export function OrderFilters({
           </Select>
         </div>
       </div>
-      {hasActiveFilters() && (
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearAllFilters}
-            className="text-gray-600 hover:text-gray-800 bg-transparent"
-          >
-            Clear Filters
-          </Button>
+      <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-700">Pending Orders</span>
+          <Switch
+            checked={showPendingOrders}
+            onCheckedChange={setShowPendingOrders}
+          />
         </div>
-      )}
+        {hasActiveFilters() && (
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearAllFilters}
+              className="text-gray-600 hover:text-gray-800 bg-transparent"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
