@@ -53,6 +53,7 @@ export interface SaleItem {
   delivery_type: string;
   ydm_rider?: string | null;
   comments: string | null;
+  is_delivery_free?: boolean;
 }
 
 interface OrderProduct {

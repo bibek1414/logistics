@@ -34,6 +34,7 @@ import { SearchableAgentSelect } from "./searchable-agent-select";
 import { useRouter } from "next/navigation";
 import { EditOrderDialog } from "./edit-order-dialog";
 import { useEditOrder } from "@/hooks/use-edit-order";
+import { Switch } from "@/components/ui/switch";
 
 interface OrdersTableProps {
   orders: SaleItem[];
@@ -72,6 +73,9 @@ export function OrdersTable({
     orderId: string;
     newStatus: string;
   } | null>(null);
+  const [togglingFreeDelivery, setTogglingFreeDelivery] = useState<Set<string>>(
+    new Set()
+  );
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
     if (newStatus === "Return Pending") {
@@ -92,6 +96,25 @@ export function OrdersTable({
       });
       setPendingReturnOrder(null);
     }
+  };
+
+  const handleFreeDeliveryToggle = (orderId: string, checked: boolean) => {
+    setTogglingFreeDelivery((prev) => new Set(prev).add(orderId));
+    editOrder(
+      {
+        order_id: orderId,
+        data: { is_delivery_free: checked },
+      },
+      {
+        onSettled: () => {
+          setTogglingFreeDelivery((prev) => {
+            const next = new Set(prev);
+            next.delete(orderId);
+            return next;
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -115,13 +138,14 @@ export function OrdersTable({
             <TableHead className="font-semibold">Tracking Code</TableHead>
             <TableHead className="font-semibold">Current Status</TableHead>
             <TableHead className="font-semibold">Total Price (Rs.)</TableHead>
+            <TableHead className="font-semibold">Free Delivery</TableHead>
             <TableHead className="font-semibold">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                 <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                 No orders found matching your criteria
               </TableCell>
@@ -243,6 +267,20 @@ export function OrdersTable({
                         parseFloat(order.prepaid_amount?.toString() ?? "0")
                       ).toLocaleString()}
                     </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center">
+                    <Switch
+                      checked={order.is_delivery_free ?? false}
+                      onCheckedChange={(checked) =>
+                        handleFreeDeliveryToggle(order.id.toString(), checked)
+                      }
+                      disabled={
+                        isEditingOrder ||
+                        togglingFreeDelivery.has(order.id.toString())
+                      }
+                    />
                   </div>
                 </TableCell>
                 <TableCell>
