@@ -111,8 +111,8 @@ export function OrdersTable({
             </TableHead>
             <TableHead className="font-semibold">S.N.</TableHead>
             <TableHead className="font-semibold">Ordered On</TableHead>
-            <TableHead className="font-semibold">Customer Info</TableHead>
             <TableHead className="font-semibold">Current Status</TableHead>
+            <TableHead className="font-semibold">Customer Info</TableHead>
             <TableHead className="font-semibold">Tracking Code</TableHead>
             <TableHead className="font-semibold">Total Price (Rs.)</TableHead>
             <TableHead className="font-semibold">Action</TableHead>
@@ -150,16 +150,6 @@ export function OrdersTable({
                     </div>
                     <div className="text-xs opacity-90">
                       {formatDate(order.sent_to_ydm_date).time}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="font-medium text-sm">
-                      {order.full_name} ({order.phone_number})
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      {order.delivery_address}, {order.city}
                     </div>
                   </div>
                 </TableCell>
@@ -218,6 +208,16 @@ export function OrdersTable({
                       )}
                     </SelectContent>
                   </Select>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="font-medium text-sm">
+                      {order.full_name} ({order.phone_number})
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {order.delivery_address}, {order.city}
+                    </div>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span
