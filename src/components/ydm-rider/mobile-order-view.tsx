@@ -12,6 +12,41 @@ import { ContactButton } from "./contact-button";
 import { CustomerPhone } from "./customer-phone";
 import { StatusSelector } from "./status-selector";
 
+const getWhatsAppLink = (phone: string | null | undefined, countryCode?: string | null) => {
+  if (!phone) return "";
+  
+  let formattedPhone = phone.trim();
+  if (formattedPhone.startsWith("00")) {
+    formattedPhone = "+" + formattedPhone.substring(2);
+  }
+
+  if (formattedPhone.startsWith("+")) {
+    return `https://wa.me/${formattedPhone.replace(/\D/g, "")}`;
+  }
+
+  let cleaned = formattedPhone.replace(/\D/g, "");
+  const cleanedCountry = countryCode ? countryCode.replace(/\D/g, "") : "";
+
+  if (cleanedCountry && !cleaned.startsWith(cleanedCountry)) {
+    if (cleaned.startsWith("0")) {
+      cleaned = cleaned.substring(1);
+    }
+    cleaned = cleanedCountry + cleaned;
+  } else if (!cleanedCountry) {
+    if (
+      cleaned.length === 10 &&
+      (cleaned.startsWith("98") ||
+        cleaned.startsWith("97") ||
+        cleaned.startsWith("96") ||
+        cleaned.startsWith("95"))
+    ) {
+      cleaned = "977" + cleaned;
+    }
+  }
+
+  return `https://wa.me/${cleaned}`;
+};
+
 interface MobileOrderViewProps {
   orders: SaleItem[];
   loading: boolean;
@@ -414,6 +449,27 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                             buttonText=" Franchise"
                           />
                         )}
+                      {getWhatsAppLink(order.phone_number, order.country_code) && (
+                        <a
+                          href={getWhatsAppLink(order.phone_number, order.country_code)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
+                        >
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full text-xs px-2 py-1.5 h-8 flex items-center justify-center gap-1 border-green-500 text-green-700 hover:bg-green-50 hover:text-green-700 bg-white"
+                          >
+                            <img
+                              src="/WhatsApp_icon.png"
+                              alt="WhatsApp"
+                              className="w-3.5 h-3.5 object-contain"
+                            />
+                            <span>WhatsApp</span>
+                          </Button>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </CardContent>

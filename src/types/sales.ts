@@ -39,6 +39,7 @@ export interface SaleItem {
   delivery_address: string;
   city: string;
   phone_number: string;
+  country_code?: string | null;
   remarks: string;
   order_products: OrderProduct[];
   total_amount: string;
