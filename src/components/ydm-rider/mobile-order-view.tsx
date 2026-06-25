@@ -443,51 +443,53 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                   </div>
 
                   {/* Contact Section */}
-                  <div className="space-y-2 pt-2 border-t">
-                    <div className="flex flex-col gap-2">
-                      <ContactButton
-                        contacts={[
-                          {
-                            phone_number: order.sales_person.phone_number,
-                            first_name: order.sales_person.first_name,
-                            last_name: order.sales_person.last_name,
-                          },
-                        ]}
-                        buttonText="Salesperson"
-                      />
-                      {order.sales_person.franchise_contact_numbers &&
-                        order.sales_person.franchise_contact_numbers.length >
-                          0 && (
-                          <ContactButton
-                            contacts={
-                              order.sales_person.franchise_contact_numbers
-                            }
-                            buttonText=" Franchise"
-                          />
-                        )}
-                      {getWhatsAppLink(order.phone_number, order.country_code) && (
-                        <a
-                          href={getWhatsAppLink(order.phone_number, order.country_code)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full"
-                        >
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full text-xs px-2 py-1.5 h-8 flex items-center justify-center gap-1 border-green-500 text-green-700 hover:bg-green-50 hover:text-green-700 bg-white"
-                          >
-                            <img
-                              src="/WhatsApp_icon.png"
-                              alt="WhatsApp"
-                              className="w-3.5 h-3.5 object-contain"
+                  {order.is_rider_verified && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <div className="flex flex-col gap-2">
+                        <ContactButton
+                          contacts={[
+                            {
+                              phone_number: order.sales_person.phone_number,
+                              first_name: order.sales_person.first_name,
+                              last_name: order.sales_person.last_name,
+                            },
+                          ]}
+                          buttonText="Salesperson"
+                        />
+                        {order.sales_person.franchise_contact_numbers &&
+                          order.sales_person.franchise_contact_numbers.length >
+                            0 && (
+                            <ContactButton
+                              contacts={
+                                order.sales_person.franchise_contact_numbers
+                              }
+                              buttonText=" Franchise"
                             />
-                            <span>WhatsApp</span>
-                          </Button>
-                        </a>
-                      )}
+                          )}
+                        {getWhatsAppLink(order.phone_number, order.country_code) && (
+                          <a
+                            href={getWhatsAppLink(order.phone_number, order.country_code)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full"
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full text-xs px-2 py-1.5 h-8 flex items-center justify-center gap-1 border-green-500 text-green-700 hover:bg-green-50 hover:text-green-700 bg-white"
+                            >
+                              <img
+                                src="/WhatsApp_icon.png"
+                                alt="WhatsApp"
+                                className="w-3.5 h-3.5 object-contain"
+                              />
+                              <span>WhatsApp</span>
+                            </Button>
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             );
