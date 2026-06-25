@@ -86,7 +86,22 @@ export const useYDMRiderOrderMutations = ({
     },
   });
 
+  const verifyOrderMutation = useMutation({
+    mutationFn: (orderCode: string) => YDMRiderOrdersAPI.verifyOrder(orderCode),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["ydmRiderOrders"],
+      });
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      console.error("Failed to verify order:", error);
+      onError?.(error);
+    },
+  });
+
   return {
     updateOrderStatusMutation,
+    verifyOrderMutation,
   };
 };

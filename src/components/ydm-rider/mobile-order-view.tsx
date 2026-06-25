@@ -60,6 +60,7 @@ interface MobileOrderViewProps {
     newStatus: string,
     comment?: string
   ) => void;
+  onVerifyOrder?: (orderCode: string) => void;
 }
 
 type StatusTab =
@@ -98,6 +99,7 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
   pageSize,
   onFiltersChange,
   onStatusUpdate,
+  onVerifyOrder,
 }) => {
   const [activeTab, setActiveTab] = useState<StatusTab>("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -423,8 +425,22 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Status Actions */}
-                  <div>{getStatusActions(order)}</div>
+                  {/* Status / Verification Actions */}
+                  <div className="mt-2 mb-1">
+                    {!order.is_rider_verified ? (
+                      <div className="flex justify-center w-full">
+                        <Button
+                          size="sm"
+                          onClick={() => onVerifyOrder?.(order.order_code)}
+                          className="w-fit bg-blue-600 hover:bg-blue-700 text-white font-medium h-8 text-xs flex items-center justify-center gap-1 px-4"
+                        >
+                          Verify Order
+                        </Button>
+                      </div>
+                    ) : (
+                      <div>{getStatusActions(order)}</div>
+                    )}
+                  </div>
 
                   {/* Contact Section */}
                   <div className="space-y-2 pt-2 border-t">

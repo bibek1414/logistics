@@ -31,6 +31,7 @@ interface YDMRiderOrderListProps {
   pageSize: number;
   onFiltersChange: (filters: YDMRiderOrderFilters) => void;
   onStatusUpdate: (orderId: string, newStatus: string, comment?: string) => void;
+  onVerifyOrder?: (orderCode: string) => void;
 }
 
 export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
@@ -42,6 +43,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   pageSize,
   onFiltersChange,
   onStatusUpdate,
+  onVerifyOrder,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingStatuses, setUpdatingStatuses] = useState<Set<string>>(new Set());
@@ -178,6 +180,7 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
         pageSize={pageSize}
         onFiltersChange={onFiltersChange}
         onStatusUpdate={onStatusUpdate}
+        onVerifyOrder={onVerifyOrder}
       />
 
       {/* Desktop View */}
@@ -277,12 +280,28 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                     </div>
                           </TableCell>
                           <TableCell>
-                            <Link href={`/track-order/${order.order_code}`}>
-                              <Button size="icon" variant="ghost">
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">View Details</span>
-                              </Button>
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/track-order/${order.order_code}`}>
+                                <Button size="icon" variant="ghost">
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View Details</span>
+                                </Button>
+                              </Link>
+                              {order.is_rider_verified ? (
+                                <span className="text-xs text-green-600 font-semibold px-2 py-1 bg-green-50 border border-green-200 rounded whitespace-nowrap">
+                                  ✓ Verified
+                                </span>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => onVerifyOrder?.(order.order_code)}
+                                  className="text-xs h-8 text-blue-600 border-blue-600 hover:bg-blue-50 hover:text-blue-750 whitespace-nowrap"
+                                >
+                                  Verify Order
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

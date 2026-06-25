@@ -97,4 +97,16 @@ export class YDMRiderOrdersAPI {
     await this.handleResponse(response);
     return response.json();
   }
+
+  static async verifyOrder(orderCode: string): Promise<unknown> {
+    const url = `${API_BASE_URL}/api/logistics/verify-order/`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ order: orderCode }),
+    });
+
+    await this.handleResponse(response);
+    return response.json();
+  }
 }

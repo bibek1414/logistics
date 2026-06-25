@@ -55,6 +55,7 @@ export interface SaleItem {
   ydm_rider?: string | null;
   comments: string | null;
   is_delivery_free?: boolean;
+  is_rider_verified?: boolean;
 }
 
 interface OrderProduct {

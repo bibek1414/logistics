@@ -19,7 +19,7 @@ const RiderOrdersPage: React.FC = () => {
     orderStatus: filters.orderStatus,
   });
 
-  const { updateOrderStatusMutation } = useYDMRiderOrderMutations({
+  const { updateOrderStatusMutation, verifyOrderMutation } = useYDMRiderOrderMutations({
     onSuccess: () => {
       refetch();
     },
@@ -37,9 +37,17 @@ const RiderOrdersPage: React.FC = () => {
     }
   };
 
+  const handleVerifyOrder = async (orderCode: string) => {
+    try {
+      await verifyOrderMutation.mutateAsync(orderCode);
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const orders = ordersResponse?.results || [];
   const totalCount = ordersResponse?.count || 0;
-  const errorMessage = error?.message || updateOrderStatusMutation.error?.message || null;
+  const errorMessage = error?.message || updateOrderStatusMutation.error?.message || verifyOrderMutation.error?.message || null;
 
   return (
     <div className="max-w-7xl px-4 mx-auto p-4 space-y-6">
@@ -47,13 +55,14 @@ const RiderOrdersPage: React.FC = () => {
       
       <YDMRiderOrderList
         orders={orders}
-        loading={loading || updateOrderStatusMutation.isPending}
+        loading={loading || updateOrderStatusMutation.isPending || verifyOrderMutation.isPending}
         error={errorMessage}
         totalCount={totalCount}
         currentPage={filters.page}
         pageSize={filters.pageSize}
         onFiltersChange={handleFiltersChange}
         onStatusUpdate={handleStatusUpdate}
+        onVerifyOrder={handleVerifyOrder}
       />
     </div>
   );
