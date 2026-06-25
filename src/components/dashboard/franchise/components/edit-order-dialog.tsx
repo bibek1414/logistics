@@ -32,6 +32,7 @@ import { useEditOrder } from "@/hooks/use-edit-order";
 
 interface EditOrderDialogProps {
   order: SaleItem;
+  disabled?: boolean;
 }
 
 interface FormErrors {
@@ -40,7 +41,7 @@ interface FormErrors {
   delivery_address?: string;
 }
 
-export function EditOrderDialog({ order }: EditOrderDialogProps) {
+export function EditOrderDialog({ order, disabled }: EditOrderDialogProps) {
   const { mutate, isPending } = useEditOrder();
   const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -116,7 +117,7 @@ export function EditOrderDialog({ order }: EditOrderDialogProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="w-18 bg-transparent">
+        <Button variant="outline" size="icon" className="w-18 bg-transparent" disabled={disabled}>
           <Edit className="h-4 w-4" />
           <span className="sr-only">Edit order</span>
         </Button>

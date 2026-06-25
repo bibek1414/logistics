@@ -16,6 +16,7 @@ interface SearchableAgentSelectProps {
   value: string;
   onValueChange: (value: string) => void;
   disabled?: boolean;
+  isAssigning?: boolean;
   placeholder?: string;
   assignedRiderPhone?: string | null;
 }
@@ -25,6 +26,7 @@ export function SearchableAgentSelect({
   value,
   onValueChange,
   disabled = false,
+  isAssigning = false,
   placeholder = "Assign Agent",
   assignedRiderPhone,
 }: SearchableAgentSelectProps) {
@@ -76,7 +78,7 @@ export function SearchableAgentSelect({
       <Select
         value={value}
         onValueChange={onValueChange}
-        disabled={disabled}
+        disabled={disabled || isAssigning}
         open={open}
         onOpenChange={setOpen}
       >
@@ -87,7 +89,7 @@ export function SearchableAgentSelect({
               : "bg-white cursor-pointer"
           }`}
         >
-          {disabled ? (
+          {isAssigning ? (
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3 animate-spin" />
               <span>Assigning...</span>
