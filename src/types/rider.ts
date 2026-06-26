@@ -39,4 +39,19 @@ export interface RiderOrdersResponse {
   results: SaleItem[];
 }
 
+export interface RiderCommissionPayment {
+  id: number;
+  rider: number;
+  amount: string;
+  paid_at: string;
+  remarks: string;
+}
+
+export interface RiderCommissionPaymentsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: RiderCommissionPayment[];
+}
+
 

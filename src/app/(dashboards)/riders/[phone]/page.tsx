@@ -10,6 +10,7 @@ import {
   useRiderCommissionStats,
   useRiderPackageStats,
   useRiderOrders,
+  useRiderCommissionPayments,
 } from "@/hooks/use-riders";
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { format } from "date-fns";
@@ -113,10 +114,27 @@ export default function RiderStatsPage({ params }: PageProps) {
     !!decodedPhone
   );
 
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const paymentsPageSize = 10;
+
+  const {
+    data: paymentsData,
+    isLoading: isPaymentsLoading,
+    isError: isPaymentsError,
+    error: paymentsError,
+    refetch: refetchPayments,
+  } = useRiderCommissionPayments(
+    decodedPhone,
+    paymentsPage,
+    paymentsPageSize,
+    activeTab === "commission"
+  );
+
   const handleRetry = () => {
     refetchCommission();
     refetchPackages();
     refetchOrders();
+    refetchPayments();
   };
 
   const handleClearDates = () => {
@@ -168,6 +186,7 @@ export default function RiderStatsPage({ params }: PageProps) {
                 onClick={() => {
                   setActiveTab("today");
                   setOrdersPage(1);
+                  setPaymentsPage(1);
                 }}
                 className={`pb-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none cursor-pointer ${
                   activeTab === "today"
@@ -181,6 +200,7 @@ export default function RiderStatsPage({ params }: PageProps) {
                 onClick={() => {
                   setActiveTab("all");
                   setOrdersPage(1);
+                  setPaymentsPage(1);
                 }}
                 className={`pb-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none cursor-pointer ${
                   activeTab === "all"
@@ -194,6 +214,7 @@ export default function RiderStatsPage({ params }: PageProps) {
                 onClick={() => {
                   setActiveTab("commission");
                   setOrdersPage(1);
+                  setPaymentsPage(1);
                 }}
                 className={`pb-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none cursor-pointer ${
                   activeTab === "commission"
@@ -275,53 +296,171 @@ export default function RiderStatsPage({ params }: PageProps) {
           <div className="space-y-8">
             {/* Financial Performance Section (Commission Tracking only) */}
             {activeTab === "commission" && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
-                  Financial Performance
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Remaining Balance
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
+                    Financial Performance
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Remaining Balance
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        Rs.{" "}
+                        {(commissionData?.remaining_balance || 0).toLocaleString(
+                          undefined,
+                          { minimumFractionDigits: 1, maximumFractionDigits: 2 },
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      Rs.{" "}
-                      {(commissionData?.remaining_balance || 0).toLocaleString(
-                        undefined,
-                        { minimumFractionDigits: 1, maximumFractionDigits: 2 },
+
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Lifetime Earned
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        Rs.{" "}
+                        {(
+                          commissionData?.lifetime_commission_earned || 0
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 1,
+                          maximumFractionDigits: 2,
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Lifetime Paid
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        Rs.{" "}
+                        {(
+                          commissionData?.lifetime_commission_paid || 0
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 1,
+                          maximumFractionDigits: 2,
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Paid Commission History Table */}
+                <div className="space-y-4 pt-4">
+                  <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
+                    Paid Commission History
+                  </h2>
+                  {isPaymentsLoading ? (
+                    <div className="space-y-2">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <Skeleton key={i} className="h-10 w-full" />
+                      ))}
+                    </div>
+                  ) : isPaymentsError ? (
+                    <p className="text-sm text-red-500">
+                      Failed to load commission history: {paymentsError?.message}
+                    </p>
+                  ) : !paymentsData?.results || paymentsData.results.length === 0 ? (
+                    <p className="text-sm text-gray-500 py-4">
+                      No paid commission history found.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-16">S.N.</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Paid At</TableHead>
+                              <TableHead>Remarks</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {paymentsData.results.map((payment, index) => {
+                              const serialNumber =
+                                (paymentsPage - 1) * paymentsPageSize + index + 1;
+                              
+                              let formattedDate = payment.paid_at;
+                              try {
+                                formattedDate = format(new Date(payment.paid_at), "yyyy-MM-dd hh:mm a");
+                              } catch (e) {
+                                // fallback
+                              }
+
+                              return (
+                                <TableRow key={payment.id}>
+                                  <TableCell className="font-medium text-gray-600">
+                                    {serialNumber}
+                                  </TableCell>
+                                  <TableCell className="font-medium text-gray-900">
+                                    Rs. {parseFloat(payment.amount).toLocaleString(undefined, {
+                                      minimumFractionDigits: 1,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                  </TableCell>
+                                  <TableCell className="text-gray-700">
+                                    {formattedDate}
+                                  </TableCell>
+                                  <TableCell className="text-gray-600">
+                                    {payment.remarks || "-"}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Pagination */}
+                      {Math.ceil(paymentsData.count / paymentsPageSize) > 1 && (
+                        <div className="flex items-center justify-between py-2">
+                          <div className="text-xs text-gray-500">
+                            Showing {(paymentsPage - 1) * paymentsPageSize + 1} to{" "}
+                            {Math.min(
+                              paymentsPage * paymentsPageSize,
+                              paymentsData.count,
+                            )}{" "}
+                            of {paymentsData.count} payments
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setPaymentsPage((prev) => Math.max(prev - 1, 1))
+                              }
+                              disabled={paymentsPage === 1}
+                              className="h-8 text-xs gap-1"
+                            >
+                              <ChevronLeft className="h-3.5 w-3.5" /> Previous
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setPaymentsPage((prev) =>
+                                  Math.min(
+                                    prev + 1,
+                                    Math.ceil(paymentsData.count / paymentsPageSize),
+                                  ),
+                                )
+                              }
+                              disabled={
+                                paymentsPage ===
+                                Math.ceil(paymentsData.count / paymentsPageSize)
+                              }
+                              className="h-8 text-xs gap-1"
+                            >
+                              Next <ChevronRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
-
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Lifetime Earned
-                    </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      Rs.{" "}
-                      {(
-                        commissionData?.lifetime_commission_earned || 0
-                      ).toLocaleString(undefined, {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 2,
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Lifetime Paid
-                    </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      Rs.{" "}
-                      {(
-                        commissionData?.lifetime_commission_paid || 0
-                      ).toLocaleString(undefined, {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 2,
-                      })}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
