@@ -35,8 +35,9 @@ export function SearchableAgentSelect({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data: riders, isLoading: isLoadingRiders } =
+  const { data, isLoading: isLoadingRiders } =
     useRiders(debouncedSearchTerm);
+  const riders = data?.results;
 
   const getAssignedRiderName = (riderId: string) => {
     if (!riders) return null;

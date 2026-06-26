@@ -3,18 +3,27 @@ import { RidersResponse } from "@/types/rider";
 export class RiderService {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
-  static async getRiders(filter: string): Promise<RidersResponse> {
+  static async getRiders(filter?: string, page?: number, pageSize?: number): Promise<RidersResponse> {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("accessToken")
         : null;
 
-    let baseurl = `${this.baseURL}/api/logistics/ydm-riders/`;
+    const params = new URLSearchParams();
     if (filter) {
-      baseurl += `?search=${filter}`;
-    } else {
-      baseurl += `?search=`;
+      params.append("search", filter);
     }
+    if (page) {
+      params.append("page", page.toString());
+    }
+    if (pageSize) {
+      params.append("page_size", pageSize.toString());
+    }
+
+    const queryString = params.toString();
+    const baseurl = `${this.baseURL}/api/logistics/ydm-riders/${
+      queryString ? `?${queryString}` : ""
+    }`;
     const response = await fetch(baseurl, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -3,13 +3,27 @@ import { RiderService } from "@/services/riders.service";
 import { Rider, RidersResponse } from "@/types/rider";
 import { toast } from "sonner";
 
-export const useRiders = (search: string) => {
+export const useRiders = (
+  paramsOrSearch?: string | { search?: string; page?: number; pageSize?: number }
+) => {
+  let search = "";
+  let page: number | undefined;
+  let pageSize: number | undefined;
+
+  if (typeof paramsOrSearch === "string") {
+    search = paramsOrSearch;
+  } else if (paramsOrSearch) {
+    search = paramsOrSearch.search || "";
+    page = paramsOrSearch.page;
+    pageSize = paramsOrSearch.pageSize;
+  }
+
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
     RidersResponse,
     Error
   >({
-    queryKey: ["riders", search],
-    queryFn: () => RiderService.getRiders(search), // Load all riders initially
+    queryKey: ["riders", search, page, pageSize],
+    queryFn: () => RiderService.getRiders(search, page, pageSize), // Load riders with pagination
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

@@ -12,11 +12,18 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Menu, Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, Role } from "@/context/AuthContext";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, isLoading } = useAuth();
+
+  const isOperatorOrLogistics = useMemo(() => {
+    return (
+      user &&
+      (user.role === Role.YDM_Operator || user.role === Role.YDM_Logistics)
+    );
+  }, [user]);
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -61,6 +68,14 @@ const Header = () => {
                 >
                   Franchise List
                 </Link>
+                {isOperatorOrLogistics && (
+                  <Link
+                    href="/riders"
+                    className="text-foreground hover:text-primary transition-colors font-medium"
+                  >
+                    Riders
+                  </Link>
+                )}
                 <Button asChild variant="default" size="sm">
                   <Link href="/user-management">User Management</Link>
                 </Button>
@@ -123,6 +138,15 @@ const Header = () => {
                       >
                         Franchise List
                       </Link>
+                      {isOperatorOrLogistics && (
+                        <Link
+                          href="/riders"
+                          onClick={closeMobileMenu}
+                          className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                        >
+                          Riders
+                        </Link>
+                      )}
                       <div className="flex flex-col gap-2 w-fit">
                         <Button asChild variant="outline" className="w-fit border-none">
                           <Link

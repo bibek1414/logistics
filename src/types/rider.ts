@@ -6,7 +6,13 @@ export interface Rider {
   phone_number: string;
   role: "YDM_Rider"; // since all shown are the same role
   franchise: string | null;
+  factory?: string | null;
   address: string;
 }
 
-export type RidersResponse = Rider[];
+export interface RidersResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Rider[];
+}
