@@ -586,7 +586,7 @@ export default function RiderStatsPage({ params }: PageProps) {
                 <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
                   Delivery Performance
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className="p-4 border border-gray-200 rounded-lg">
                     <div className="text-xs text-gray-500 font-medium">
                       Assigned
@@ -611,6 +611,15 @@ export default function RiderStatsPage({ params }: PageProps) {
                     </div>
                     <div className="text-xl font-bold text-gray-900 mt-1">
                       {packageData?.total_packages_delivered_lifetime || 0}
+                    </div>
+                  </div>
+
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="text-xs text-gray-500 font-medium">
+                      Lifetime Cancelled
+                    </div>
+                    <div className="text-xl font-bold text-gray-900 mt-1">
+                      {packageData?.total_packages_cancelled_lifetime || 0}
                     </div>
                   </div>
                 </div>

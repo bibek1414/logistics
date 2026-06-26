@@ -1,12 +1,14 @@
 "use client";
 import React from "react";
 import { YDMRiderOrderList } from "@/components/ydm-rider/rider-order-list";
-import { useYDMRiderOrders ,useYDMRiderOrderMutations} from "@/hooks/use-ydm-riders";
+import { useYDMRiderOrders, useYDMRiderOrderMutations } from "@/hooks/use-ydm-riders";
 import { useOrderFilters } from "@/hooks/use-order-filter";
+import { useQueryClient } from "@tanstack/react-query";
 
 const RiderOrdersPage: React.FC = () => {
   const { filters, handleFiltersChange } = useOrderFilters();
-  
+  const queryClient = useQueryClient();
+
   const {
     data: ordersResponse,
     isLoading: loading,
@@ -22,10 +24,11 @@ const RiderOrdersPage: React.FC = () => {
   const { updateOrderStatusMutation, verifyOrderMutation } = useYDMRiderOrderMutations({
     onSuccess: () => {
       refetch();
+      queryClient.invalidateQueries({ queryKey: ["rider-package-stats"] });
     },
   });
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string,comment?: string) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: string, comment?: string) => {
     try {
       await updateOrderStatusMutation.mutateAsync({
         orderId,
@@ -51,8 +54,6 @@ const RiderOrdersPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl px-4 mx-auto p-4 space-y-6">
-     
-      
       <YDMRiderOrderList
         orders={orders}
         loading={loading || updateOrderStatusMutation.isPending || verifyOrderMutation.isPending}

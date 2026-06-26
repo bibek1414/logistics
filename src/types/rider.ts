@@ -28,6 +28,7 @@ export interface RiderPackageStats {
   packages_assigned: number;
   packages_delivered: number;
   total_packages_delivered_lifetime: number;
+  total_packages_cancelled_lifetime: number;
 }
 
 import { SaleItem } from "./sales";

@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -30,7 +29,7 @@ const RiderHeader = () => {
       firstName: user.first_name,
       lastName: user.last_name,
       phoneNumber: user.phone_number,
-      role: user.role.replace("YDM_", "")
+      role: user.role.replace("YDM_", ""),
     };
   }, [user]);
 
@@ -76,9 +75,15 @@ const RiderHeader = () => {
             </Link>
             <Link
               href="/ydm-rider/dashboard"
-              className="text-foreground hover:text-primary transition-colors font-medium"
+              className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
             >
               Dashboard
+            </Link>
+            <Link
+              href="/ydm-rider/all-orders"
+              className="text-foreground hover:text-primary transition-colors font-medium cursor-pointer"
+            >
+              All Orders
             </Link>
             <Button
               variant="destructive"
@@ -134,9 +139,17 @@ const RiderHeader = () => {
                   <Link
                     href="/ydm-rider/dashboard"
                     onClick={closeMobileMenu}
-                    className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                    className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted cursor-pointer"
                   >
                     Dashboard
+                  </Link>
+
+                  <Link
+                    href="/ydm-rider/all-orders"
+                    onClick={closeMobileMenu}
+                    className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted cursor-pointer"
+                  >
+                    All Orders
                   </Link>
 
                   <Button

@@ -76,7 +76,7 @@ export const useReassignRider = () => {
 };
 
 export const useRiderCommissionStats = (
-  riderPhone: string,
+  riderPhone?: string,
   startDate?: string,
   endDate?: string,
   enabled: boolean = true
@@ -88,7 +88,7 @@ export const useRiderCommissionStats = (
     queryKey: ["rider-commission-stats", riderPhone, startDate, endDate],
     queryFn: () =>
       RiderService.getRiderCommissionStats(riderPhone, startDate, endDate),
-    enabled: enabled && !!riderPhone,
+    enabled: enabled,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -105,7 +105,7 @@ export const useRiderCommissionStats = (
 };
 
 export const useRiderPackageStats = (
-  riderPhone: string,
+  riderPhone?: string,
   startDate?: string,
   endDate?: string,
   enabled: boolean = true
@@ -117,7 +117,7 @@ export const useRiderPackageStats = (
     queryKey: ["rider-package-stats", riderPhone, startDate, endDate],
     queryFn: () =>
       RiderService.getRiderPackageStats(riderPhone, startDate, endDate),
-    enabled: enabled && !!riderPhone,
+    enabled: enabled,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -134,7 +134,7 @@ export const useRiderPackageStats = (
 };
 
 export const useRiderOrders = (
-  riderPhone: string,
+  riderPhone?: string,
   page?: number,
   pageSize?: number,
   startDate?: string,
@@ -147,7 +147,7 @@ export const useRiderOrders = (
   >({
     queryKey: ["rider-orders", riderPhone, page, pageSize, startDate, endDate],
     queryFn: () => RiderService.getRiderOrders(riderPhone, page, pageSize, startDate, endDate),
-    enabled: enabled && !!riderPhone,
+    enabled: enabled,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -164,7 +164,7 @@ export const useRiderOrders = (
 };
 
 export const useRiderCommissionPayments = (
-  riderPhone: string,
+  riderPhone?: string,
   page?: number,
   pageSize?: number,
   enabled: boolean = true
@@ -175,7 +175,7 @@ export const useRiderCommissionPayments = (
   >({
     queryKey: ["rider-commission-payments", riderPhone, page, pageSize],
     queryFn: () => RiderService.getRiderCommissionPayments(riderPhone, page, pageSize),
-    enabled: enabled && !!riderPhone,
+    enabled: enabled,
     retry: 1,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

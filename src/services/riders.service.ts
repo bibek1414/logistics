@@ -108,7 +108,7 @@ export class RiderService {
   }
 
   static async getRiderCommissionStats(
-    riderPhone: string,
+    riderPhone?: string,
     startDate?: string,
     endDate?: string
   ): Promise<RiderCommissionStats> {
@@ -118,7 +118,9 @@ export class RiderService {
         : null;
 
     const params = new URLSearchParams();
-    params.append("rider", riderPhone);
+    if (riderPhone) {
+      params.append("rider", riderPhone);
+    }
     if (startDate) {
       params.append("start_date", startDate);
     }
@@ -150,7 +152,7 @@ export class RiderService {
   }
 
   static async getRiderPackageStats(
-    riderPhone: string,
+    riderPhone?: string,
     startDate?: string,
     endDate?: string
   ): Promise<RiderPackageStats> {
@@ -160,7 +162,9 @@ export class RiderService {
         : null;
 
     const params = new URLSearchParams();
-    params.append("rider", riderPhone);
+    if (riderPhone) {
+      params.append("rider", riderPhone);
+    }
     if (startDate) {
       params.append("start_date", startDate);
     }
@@ -192,7 +196,7 @@ export class RiderService {
   }
 
   static async getRiderOrders(
-    riderPhone: string,
+    riderPhone?: string,
     page?: number,
     pageSize?: number,
     startDate?: string,
@@ -204,7 +208,9 @@ export class RiderService {
         : null;
 
     const params = new URLSearchParams();
-    params.append("rider", riderPhone);
+    if (riderPhone) {
+      params.append("rider", riderPhone);
+    }
     if (page) {
       params.append("page", page.toString());
     }
@@ -242,7 +248,7 @@ export class RiderService {
   }
 
   static async getRiderCommissionPayments(
-    riderPhone: string,
+    riderPhone?: string,
     page?: number,
     pageSize?: number
   ): Promise<RiderCommissionPaymentsResponse> {
@@ -252,7 +258,9 @@ export class RiderService {
         : null;
 
     const params = new URLSearchParams();
-    params.append("rider", riderPhone);
+    if (riderPhone) {
+      params.append("rider", riderPhone);
+    }
     if (page) {
       params.append("page", page.toString());
     }
