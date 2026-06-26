@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RiderService } from "@/services/riders.service";
-import { Rider, RidersResponse, RiderCommissionStats, RiderPackageStats, RiderOrdersResponse, RiderCommissionPaymentsResponse } from "@/types/rider";
+import { Rider, RidersResponse, RiderCommissionStats, RiderPackageStats, RiderOrdersResponse, RiderCommissionPaymentsResponse, RiderDailyStats } from "@/types/rider";
 import { toast } from "sonner";
 
 export const useRiders = (
@@ -210,4 +210,34 @@ export const useCreateRiderPayout = () => {
     },
   });
 };
+
+export const useRiderDailyStats = (
+  riderPhone?: string,
+  startDate?: string,
+  endDate?: string,
+  enabled: boolean = true
+) => {
+  const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
+    RiderDailyStats[],
+    Error
+  >({
+    queryKey: ["rider-daily-stats", riderPhone, startDate, endDate],
+    queryFn: () =>
+      RiderService.getRiderDailyStats(riderPhone, startDate, endDate),
+    enabled: enabled,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching,
+  };
+};
+
 

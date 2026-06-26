@@ -14,6 +14,7 @@ import {
   useCreateRiderPayout,
 } from "@/hooks/use-riders";
 import DateRangePicker from "@/components/ui/date-range-picker";
+import { RiderDailyStatsChart } from "@/components/dashboard/components/rider-daily-stats-chart";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -609,47 +610,52 @@ export default function RiderStatsPage({ params }: PageProps) {
 
             {/* Delivery Performance Section (Today and All Orders) */}
             {(activeTab === "today" || activeTab === "all") && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
-                  Delivery Performance
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Assigned
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
+                    Delivery Performance
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Assigned
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        {packageData?.packages_assigned || 0}
+                      </div>
                     </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      {packageData?.packages_assigned || 0}
-                    </div>
-                  </div>
 
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Delivered
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Delivered
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        {packageData?.packages_delivered || 0}
+                      </div>
                     </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      {packageData?.packages_delivered || 0}
-                    </div>
-                  </div>
 
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Lifetime Delivered
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Lifetime Delivered
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        {packageData?.total_packages_delivered_lifetime || 0}
+                      </div>
                     </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      {packageData?.total_packages_delivered_lifetime || 0}
-                    </div>
-                  </div>
 
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-500 font-medium">
-                      Lifetime Cancelled
-                    </div>
-                    <div className="text-xl font-bold text-gray-900 mt-1">
-                      {packageData?.total_packages_cancelled_lifetime || 0}
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-500 font-medium">
+                        Lifetime Cancelled
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">
+                        {packageData?.total_packages_cancelled_lifetime || 0}
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Rider Daily Stats Chart */}
+                <RiderDailyStatsChart riderPhone={decodedPhone} />
               </div>
             )}
 

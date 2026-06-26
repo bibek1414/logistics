@@ -61,3 +61,10 @@ export interface RiderCommissionRate {
   order_max_amount: string | null;
   commission_amount: string;
 }
+
+export interface RiderDailyStats {
+  date: string;
+  delivered_count: number;
+  returned_count: number;
+}
+

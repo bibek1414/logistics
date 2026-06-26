@@ -1,4 +1,4 @@
-import { RidersResponse, RiderCommissionStats, RiderPackageStats, RiderOrdersResponse, RiderCommissionPaymentsResponse } from "@/types/rider";
+import { RidersResponse, RiderCommissionStats, RiderPackageStats, RiderOrdersResponse, RiderCommissionPaymentsResponse, RiderDailyStats } from "@/types/rider";
 
 export class RiderService {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -319,6 +319,50 @@ export class RiderService {
       const text = await response.text();
       throw new Error(
         `HTTP ${response.status}: ${text || "Failed to create rider payout"}`
+      );
+    }
+
+    return response.json();
+  }
+
+  static async getRiderDailyStats(
+    riderPhone?: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<RiderDailyStats[]> {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+
+    const params = new URLSearchParams();
+    if (riderPhone) {
+      params.append("rider", riderPhone);
+    }
+    if (startDate) {
+      params.append("start_date", startDate);
+    }
+    if (endDate) {
+      params.append("end_date", endDate);
+    }
+
+    const queryString = params.toString();
+    const baseurl = `${this.baseURL}/api/logistics/rider-daily-stats/${
+      queryString ? `?${queryString}` : ""
+    }`;
+    const response = await fetch(baseurl, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: ${text || "Failed to fetch rider daily stats"}`
       );
     }
 
