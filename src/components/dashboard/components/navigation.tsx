@@ -73,30 +73,34 @@ export function Navigation() {
       isOrderSummaryPage,
       isInvoicePage,
       isStatementPage,
-    ]
+    ],
   );
 
   return (
     <div className="mb-6">
-      <div className="fixed  top-10 left-1/2 -translate-x-1/2 z-50   mx-auto ">
-        <div className="bg-white/90 ">
-          <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-            {isLoading ? (
-              <div className="animate-pulse bg-slate-200 dark:bg-slate-700 h-4 rounded"></div>
-            ) : currentFranchise ? (
-              currentFranchise.name
-            ) : (
-              "No franchise selected"
-            )}
-          </div>
-        </div>
-      </div>
       {/* Main Navigation */}
       <nav
         aria-label="Primary"
-        className="sticky top-4 z-30 mx-auto w-full max-w-max rounded-2xl border bg-white/70 p-1 shadow-sm ring-1 ring-black/5 backdrop-blur-md dark:bg-neutral-900/60 dark:ring-white/10"
+        className="sticky top-4 z-30 mx-auto w-full max-w-max rounded-2xl border bg-white/70 shadow-sm ring-1 ring-black/5 backdrop-blur-md dark:bg-neutral-900/60 dark:ring-white/10 overflow-hidden"
       >
-        <ul className="flex  flex-wrap items-center gap-1">
+        {/* Franchise name header row */}
+        <div className="px-3 pt-2 pb-1.5 flex items-center justify-center gap-1.5">
+          {isLoading ? (
+            <div className="animate-pulse bg-slate-200 dark:bg-slate-700 h-3.5 w-32 rounded-full" />
+          ) : (
+            <>
+              <span className="text-[12px] capitalize font-semibold">
+                {currentFranchise
+                  ? currentFranchise.name
+                  : "No franchise selected"}
+              </span>
+            </>
+          )}
+        </div>
+        {/* Divider */}
+        <div className="mx-2 border-t border-black/[0.06] dark:border-white/[0.08]" />
+        {/* Nav items */}
+        <ul className="flex flex-wrap items-center gap-1 p-1">
           {navigationItems.map((item) => {
             const activeClasses =
               "bg-primary text-primary-foreground shadow hover:bg-primary/90";
