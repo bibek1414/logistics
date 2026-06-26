@@ -41,16 +41,24 @@ export default function RiderStatsPage({ params }: PageProps) {
     requireAuth(pathname);
   }, [user, isAuthLoading, pathname]);
 
+  const [activeTab, setActiveTab] = useState<"today" | "all" | "commission">("today");
+
   const [dateRange, setDateRange] = useState<
     { from?: Date; to?: Date } | undefined
   >(undefined);
 
-  const startDateStr = dateRange?.from
-    ? format(dateRange.from, "yyyy-MM-dd")
-    : undefined;
-  const endDateStr = dateRange?.to
-    ? format(dateRange.to, "yyyy-MM-dd")
-    : undefined;
+  // Active query dates computed from selected tab
+  let activeStartDate: string | undefined = undefined;
+  let activeEndDate: string | undefined = undefined;
+
+  if (activeTab === "today") {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    activeStartDate = todayStr;
+    activeEndDate = todayStr;
+  } else if (activeTab === "commission") {
+    activeStartDate = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
+    activeEndDate = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
+  }
 
   // Fetch Rider details
   const { data: ridersData, isLoading: isRiderLoading } = useRiders({
@@ -69,8 +77,8 @@ export default function RiderStatsPage({ params }: PageProps) {
     refetch: refetchCommission,
   } = useRiderCommissionStats(
     decodedPhone,
-    startDateStr,
-    endDateStr,
+    activeStartDate,
+    activeEndDate,
     !!decodedPhone,
   );
 
@@ -82,8 +90,8 @@ export default function RiderStatsPage({ params }: PageProps) {
     refetch: refetchPackages,
   } = useRiderPackageStats(
     decodedPhone,
-    startDateStr,
-    endDateStr,
+    activeStartDate,
+    activeEndDate,
     !!decodedPhone,
   );
 
@@ -96,7 +104,14 @@ export default function RiderStatsPage({ params }: PageProps) {
     isError: isOrdersError,
     error: ordersError,
     refetch: refetchOrders,
-  } = useRiderOrders(decodedPhone, ordersPage, ordersPageSize, !!decodedPhone);
+  } = useRiderOrders(
+    decodedPhone,
+    ordersPage,
+    ordersPageSize,
+    activeStartDate,
+    activeEndDate,
+    !!decodedPhone
+  );
 
   const handleRetry = () => {
     refetchCommission();
@@ -135,7 +150,7 @@ export default function RiderStatsPage({ params }: PageProps) {
           >
             <ChevronLeft className="h-4 w-4" /> Back to Riders
           </Link>
-          <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-2 border-b border-gray-200 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 {rider
@@ -146,6 +161,50 @@ export default function RiderStatsPage({ params }: PageProps) {
                 Rider phone: {decodedPhone}
               </p>
             </div>
+
+            {/* Dynamic Preset Tabs */}
+            <div className="flex space-x-4 border-b border-transparent">
+              <button
+                onClick={() => {
+                  setActiveTab("today");
+                  setOrdersPage(1);
+                }}
+                className={`pb-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none cursor-pointer ${
+                  activeTab === "today"
+                    ? "border-black text-black font-bold"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Today's Orders
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("all");
+                  setOrdersPage(1);
+                }}
+                className={`pb-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none cursor-pointer ${
+                  activeTab === "all"
+                    ? "border-black text-black font-bold"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                All Orders
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("commission");
+                  setOrdersPage(1);
+                }}
+                className={`pb-2 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none cursor-pointer ${
+                  activeTab === "commission"
+                    ? "border-black text-black font-bold"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Commission Tracking
+              </button>
+            </div>
+
             {rider && (
               <div className="text-xs text-gray-500 space-y-1 md:text-right">
                 {rider.email && <div>Email: {rider.email}</div>}
@@ -156,25 +215,27 @@ export default function RiderStatsPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Date Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg">
-          <div className="text-sm font-medium text-gray-700">
-            Filter by Date Range
+        {/* Date Filter (Commission tab only) */}
+        {activeTab === "commission" && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg">
+            <div className="text-sm font-medium text-gray-700">
+              Filter by Date Range
+            </div>
+            <div className="flex items-center gap-2">
+              <DateRangePicker value={dateRange} onChange={setDateRange} />
+              {dateRange?.from && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearDates}
+                  className="h-10 text-gray-600 border-gray-200 hover:bg-gray-50"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
-            {dateRange?.from && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearDates}
-                className="h-10 text-gray-600 border-gray-200 hover:bg-gray-50"
-              >
-                Clear
-              </Button>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Data Display */}
         {isStatsLoading ? (

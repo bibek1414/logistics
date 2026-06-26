@@ -194,7 +194,9 @@ export class RiderService {
   static async getRiderOrders(
     riderPhone: string,
     page?: number,
-    pageSize?: number
+    pageSize?: number,
+    startDate?: string,
+    endDate?: string
   ): Promise<RiderOrdersResponse> {
     const token =
       typeof window !== "undefined"
@@ -208,6 +210,12 @@ export class RiderService {
     }
     if (pageSize) {
       params.append("page_size", pageSize.toString());
+    }
+    if (startDate) {
+      params.append("start_date", startDate);
+    }
+    if (endDate) {
+      params.append("end_date", endDate);
     }
 
     const queryString = params.toString();

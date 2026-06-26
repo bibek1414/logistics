@@ -137,14 +137,16 @@ export const useRiderOrders = (
   riderPhone: string,
   page?: number,
   pageSize?: number,
+  startDate?: string,
+  endDate?: string,
   enabled: boolean = true
 ) => {
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
     RiderOrdersResponse,
     Error
   >({
-    queryKey: ["rider-orders", riderPhone, page, pageSize],
-    queryFn: () => RiderService.getRiderOrders(riderPhone, page, pageSize),
+    queryKey: ["rider-orders", riderPhone, page, pageSize, startDate, endDate],
+    queryFn: () => RiderService.getRiderOrders(riderPhone, page, pageSize, startDate, endDate),
     enabled: enabled && !!riderPhone,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
