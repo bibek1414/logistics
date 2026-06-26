@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RiderService } from "@/services/riders.service";
-import { Rider, RidersResponse } from "@/types/rider";
+import { Rider, RidersResponse, RiderCommissionStats, RiderPackageStats } from "@/types/rider";
 import { toast } from "sonner";
 
 export const useRiders = (
@@ -73,4 +73,62 @@ export const useReassignRider = () => {
   });
 
   return { mutate, isPending, isError, error };
+};
+
+export const useRiderCommissionStats = (
+  riderPhone: string,
+  startDate?: string,
+  endDate?: string,
+  enabled: boolean = true
+) => {
+  const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
+    RiderCommissionStats,
+    Error
+  >({
+    queryKey: ["rider-commission-stats", riderPhone, startDate, endDate],
+    queryFn: () =>
+      RiderService.getRiderCommissionStats(riderPhone, startDate, endDate),
+    enabled: enabled && !!riderPhone,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching,
+  };
+};
+
+export const useRiderPackageStats = (
+  riderPhone: string,
+  startDate?: string,
+  endDate?: string,
+  enabled: boolean = true
+) => {
+  const { data, isLoading, isError, error, refetch, isRefetching } = useQuery<
+    RiderPackageStats,
+    Error
+  >({
+    queryKey: ["rider-package-stats", riderPhone, startDate, endDate],
+    queryFn: () =>
+      RiderService.getRiderPackageStats(riderPhone, startDate, endDate),
+    enabled: enabled && !!riderPhone,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching,
+  };
 };

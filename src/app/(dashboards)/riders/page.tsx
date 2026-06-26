@@ -26,6 +26,8 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
+import Link from "next/link";
+import { Rider } from "@/types/rider";
 
 export default function RidersPage() {
   const pathname = usePathname();
@@ -189,7 +191,12 @@ export default function RidersPage() {
                           {(currentPage - 1) * pageSize + index + 1}
                         </TableCell>
                         <TableCell className="font-semibold text-gray-900">
-                          {rider.first_name} {rider.last_name}
+                          <Link
+                            href={`/riders/${encodeURIComponent(rider.phone_number || "")}`}
+                            className="hover:underline text-primary font-semibold transition-colors focus:outline-none"
+                          >
+                            {rider.first_name} {rider.last_name}
+                          </Link>
                         </TableCell>
                         <TableCell className="text-sm text-gray-700">
                           <div className="flex items-center">
@@ -226,9 +233,12 @@ export default function RidersPage() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-gray-900">
+                        <Link
+                          href={`/riders/${encodeURIComponent(rider.phone_number || "")}`}
+                          className="hover:underline text-primary font-semibold block focus:outline-none"
+                        >
                           {rider.first_name} {rider.last_name}
-                        </h4>
+                        </Link>
                         <span className="text-xs text-gray-400">
                           S.N. {(currentPage - 1) * pageSize + index + 1}
                         </span>

@@ -16,3 +16,17 @@ export interface RidersResponse {
   previous: string | null;
   results: Rider[];
 }
+
+export interface RiderCommissionStats {
+  commission_earned: number;
+  lifetime_commission_earned: number;
+  lifetime_commission_paid: number;
+  remaining_balance: number;
+}
+
+export interface RiderPackageStats {
+  packages_assigned: number;
+  packages_delivered: number;
+  total_packages_delivered_lifetime: number;
+}
+

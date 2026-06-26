@@ -1,4 +1,4 @@
-import { RidersResponse } from "@/types/rider";
+import { RidersResponse, RiderCommissionStats, RiderPackageStats } from "@/types/rider";
 
 export class RiderService {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -101,6 +101,90 @@ export class RiderService {
       const text = await response.text();
       throw new Error(
         `HTTP ${response.status}: ${text || "Failed to reassign rider"}`
+      );
+    }
+
+    return response.json();
+  }
+
+  static async getRiderCommissionStats(
+    riderPhone: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<RiderCommissionStats> {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+
+    const params = new URLSearchParams();
+    params.append("rider", riderPhone);
+    if (startDate) {
+      params.append("start_date", startDate);
+    }
+    if (endDate) {
+      params.append("end_date", endDate);
+    }
+
+    const queryString = params.toString();
+    const baseurl = `${this.baseURL}/api/logistics/rider-commission-stats/${
+      queryString ? `?${queryString}` : ""
+    }`;
+    const response = await fetch(baseurl, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: ${text || "Failed to fetch rider commission stats"}`
+      );
+    }
+
+    return response.json();
+  }
+
+  static async getRiderPackageStats(
+    riderPhone: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<RiderPackageStats> {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+
+    const params = new URLSearchParams();
+    params.append("rider", riderPhone);
+    if (startDate) {
+      params.append("start_date", startDate);
+    }
+    if (endDate) {
+      params.append("end_date", endDate);
+    }
+
+    const queryString = params.toString();
+    const baseurl = `${this.baseURL}/api/logistics/rider-package-stats/${
+      queryString ? `?${queryString}` : ""
+    }`;
+    const response = await fetch(baseurl, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: ${text || "Failed to fetch rider package stats"}`
       );
     }
 
