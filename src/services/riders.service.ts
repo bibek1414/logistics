@@ -200,7 +200,8 @@ export class RiderService {
     page?: number,
     pageSize?: number,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    orderStatus?: string
   ): Promise<RiderOrdersResponse> {
     const token =
       typeof window !== "undefined"
@@ -222,6 +223,9 @@ export class RiderService {
     }
     if (endDate) {
       params.append("end_date", endDate);
+    }
+    if (orderStatus) {
+      params.append("order_status", orderStatus);
     }
 
     const queryString = params.toString();

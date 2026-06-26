@@ -55,4 +55,9 @@ export interface RiderCommissionPaymentsResponse {
   results: RiderCommissionPayment[];
 }
 
-
+export interface RiderCommissionRate {
+  id: number;
+  order_min_amount: string;
+  order_max_amount: string | null;
+  commission_amount: string;
+}

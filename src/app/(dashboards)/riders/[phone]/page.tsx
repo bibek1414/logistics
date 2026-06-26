@@ -32,6 +32,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PageProps {
   params: Promise<{
@@ -117,6 +124,11 @@ export default function RiderStatsPage({ params }: PageProps) {
 
   const [ordersPage, setOrdersPage] = useState(1);
   const ordersPageSize = 10;
+  const [ordersStatus, setOrdersStatus] = useState<string>("all");
+
+  useEffect(() => {
+    setOrdersPage(1);
+  }, [ordersStatus]);
 
   const {
     data: ordersData,
@@ -130,6 +142,7 @@ export default function RiderStatsPage({ params }: PageProps) {
     ordersPageSize,
     activeStartDate,
     activeEndDate,
+    activeTab === "all" ? (ordersStatus === "all" ? undefined : ordersStatus) : undefined,
     !!decodedPhone
   );
 
@@ -281,24 +294,38 @@ export default function RiderStatsPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Date Filter (All Orders tab only) */}
+        {/* Filter Bar (All Orders tab only) */}
         {activeTab === "all" && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
             <div className="text-sm font-medium text-gray-700">
-              Filter by Date Range
+              Filter Orders
             </div>
-            <div className="flex items-center gap-2">
-              <DateRangePicker value={dateRange} onChange={setDateRange} />
-              {dateRange?.from && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearDates}
-                  className="h-10 text-gray-600 border-gray-200 hover:bg-gray-50"
-                >
-                  Clear
-                </Button>
-              )}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="flex items-center gap-2">
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
+                {dateRange?.from && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearDates}
+                    className="h-10 text-gray-600 border-gray-200 hover:bg-gray-50"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <Select value={ordersStatus} onValueChange={setOrdersStatus}>
+                <SelectTrigger className="w-full sm:w-48 bg-white border border-gray-200 text-sm font-medium text-gray-700 cursor-pointer">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem className="cursor-pointer" value="all">All Orders</SelectItem>
+                  <SelectItem className="cursor-pointer" value="Out For Delivery">Out For Delivery</SelectItem>
+                  <SelectItem className="cursor-pointer" value="Delivered">Delivered</SelectItem>
+                  <SelectItem className="cursor-pointer" value="Rescheduled">Rescheduled</SelectItem>
+                  <SelectItem className="cursor-pointer" value="Return Pending">Return Pending</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}

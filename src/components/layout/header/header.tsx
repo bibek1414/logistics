@@ -69,12 +69,20 @@ const Header = () => {
                   Franchise List
                 </Link>
                 {isOperatorOrLogistics && (
-                  <Link
-                    href="/riders"
-                    className="text-foreground hover:text-primary transition-colors font-medium"
-                  >
-                    Riders
-                  </Link>
+                  <>
+                    <Link
+                      href="/riders"
+                      className="text-foreground hover:text-primary transition-colors font-medium"
+                    >
+                      Riders
+                    </Link>
+                    <Link
+                      href="/commissions"
+                      className="text-foreground hover:text-primary transition-colors font-medium"
+                    >
+                      Commissions
+                    </Link>
+                  </>
                 )}
                 <Button asChild variant="default" size="sm">
                   <Link href="/user-management">User Management</Link>
@@ -139,13 +147,22 @@ const Header = () => {
                         Franchise List
                       </Link>
                       {isOperatorOrLogistics && (
-                        <Link
-                          href="/riders"
-                          onClick={closeMobileMenu}
-                          className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
-                        >
-                          Riders
-                        </Link>
+                        <>
+                          <Link
+                            href="/riders"
+                            onClick={closeMobileMenu}
+                            className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                          >
+                            Riders
+                          </Link>
+                          <Link
+                            href="/commissions"
+                            onClick={closeMobileMenu}
+                            className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-md hover:bg-muted"
+                          >
+                            Commissions
+                          </Link>
+                        </>
                       )}
                       <div className="flex flex-col gap-2 w-fit">
                         <Button asChild variant="outline" className="w-fit border-none">

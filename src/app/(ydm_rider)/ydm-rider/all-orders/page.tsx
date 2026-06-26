@@ -27,6 +27,13 @@ import {
 } from "@/components/ui/table";
 import { YDMRiderOrderList } from "@/components/ydm-rider/rider-order-list";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function AllOrdersPageContent() {
   const pathname = usePathname();
@@ -181,17 +188,32 @@ function AllOrdersPageContent() {
         {/* Tab Content */}
         {activeTab === "all" && (
           <div className="space-y-6">
-            {/* Date filter */}
-            <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+            {/* Date and Status filter */}
+            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-700">Filter by Date Range</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Select a date range to filter orders.</p>
+                <h3 className="text-sm font-medium text-gray-700">Filter Orders</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Filter by date range and delivery status.</p>
               </div>
-              <div className="w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <DateRangePicker
                   value={dateRange}
                   onChange={setDateRange}
                 />
+                <Select
+                  value={filters.orderStatus}
+                  onValueChange={(val) => handleFiltersChange({ orderStatus: val })}
+                >
+                  <SelectTrigger className="w-full sm:w-48 bg-white border border-gray-200 text-sm font-medium text-gray-700 cursor-pointer">
+                    <SelectValue placeholder="All Orders" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="cursor-pointer" value="all">All Orders</SelectItem>
+                    <SelectItem className="cursor-pointer" value="Out For Delivery">Out For Delivery</SelectItem>
+                    <SelectItem className="cursor-pointer" value="Delivered">Delivered</SelectItem>
+                    <SelectItem className="cursor-pointer" value="Rescheduled">Rescheduled</SelectItem>
+                    <SelectItem className="cursor-pointer" value="Return Pending">Return Pending</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
