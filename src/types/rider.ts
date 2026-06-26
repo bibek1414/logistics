@@ -30,3 +30,13 @@ export interface RiderPackageStats {
   total_packages_delivered_lifetime: number;
 }
 
+import { SaleItem } from "./sales";
+
+export interface RiderOrdersResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: SaleItem[];
+}
+
+

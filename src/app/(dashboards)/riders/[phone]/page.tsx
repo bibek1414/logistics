@@ -9,12 +9,21 @@ import {
   useRiders,
   useRiderCommissionStats,
   useRiderPackageStats,
+  useRiderOrders,
 } from "@/hooks/use-riders";
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface PageProps {
   params: Promise<{
@@ -78,9 +87,21 @@ export default function RiderStatsPage({ params }: PageProps) {
     !!decodedPhone
   );
 
+  const [ordersPage, setOrdersPage] = useState(1);
+  const ordersPageSize = 10;
+
+  const {
+    data: ordersData,
+    isLoading: isOrdersLoading,
+    isError: isOrdersError,
+    error: ordersError,
+    refetch: refetchOrders,
+  } = useRiderOrders(decodedPhone, ordersPage, ordersPageSize, !!decodedPhone);
+
   const handleRetry = () => {
     refetchCommission();
     refetchPackages();
+    refetchOrders();
   };
 
   const handleClearDates = () => {
@@ -288,6 +309,128 @@ export default function RiderStatsPage({ params }: PageProps) {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Assigned Orders Section */}
+            <div className="space-y-4 pt-4">
+              <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
+                Assigned Orders
+              </h2>
+              {isOrdersLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-10 w-full" />
+                  ))}
+                </div>
+              ) : isOrdersError ? (
+                <p className="text-sm text-red-500">
+                  Failed to load orders: {ordersError?.message}
+                </p>
+              ) : !ordersData?.results || ordersData.results.length === 0 ? (
+                <p className="text-sm text-gray-500 py-4">No assigned orders found.</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-16">S.N.</TableHead>
+                          <TableHead>Order Code</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Phone Number</TableHead>
+                          <TableHead>Delivery Address</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Collection Amount</TableHead>
+                          <TableHead className="w-20 text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {ordersData.results.map((order, index) => {
+                          const serialNumber = (ordersPage - 1) * ordersPageSize + index + 1;
+                          const collectionAmount =
+                            parseFloat(order.total_amount?.toString() ?? "0") -
+                            parseFloat(order.prepaid_amount?.toString() ?? "0");
+                          return (
+                            <TableRow key={order.id}>
+                              <TableCell className="font-medium text-gray-600">
+                                {serialNumber}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                <Link
+                                  href={`/track-order/${order.order_code}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {order.order_code}
+                                </Link>
+                              </TableCell>
+                              <TableCell className="text-gray-900">
+                                {order.full_name}
+                              </TableCell>
+                              <TableCell className="text-gray-700">
+                                {order.phone_number}
+                              </TableCell>
+                              <TableCell className="max-w-xs text-gray-700 truncate" title={order.delivery_address}>
+                                {order.delivery_address}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                <span className="font-medium text-gray-800">
+                                  {order.order_status}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-gray-900">
+                                Rs. {collectionAmount.toLocaleString()}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Link href={`/track-order/${order.order_code}`}>
+                                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-gray-100">
+                                    <Eye className="h-4 w-4 text-gray-600" />
+                                    <span className="sr-only">View Details</span>
+                                  </Button>
+                                </Link>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination */}
+                  {Math.ceil(ordersData.count / ordersPageSize) > 1 && (
+                    <div className="flex items-center justify-between py-2">
+                      <div className="text-xs text-gray-500">
+                        Showing {(ordersPage - 1) * ordersPageSize + 1} to{" "}
+                        {Math.min(ordersPage * ordersPageSize, ordersData.count)} of{" "}
+                        {ordersData.count} orders
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setOrdersPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={ordersPage === 1}
+                          className="h-8 text-xs gap-1"
+                        >
+                          <ChevronLeft className="h-3.5 w-3.5" /> Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setOrdersPage((prev) =>
+                              Math.min(prev + 1, Math.ceil(ordersData.count / ordersPageSize))
+                            )
+                          }
+                          disabled={ordersPage === Math.ceil(ordersData.count / ordersPageSize)}
+                          className="h-8 text-xs gap-1"
+                        >
+                          Next <ChevronRight className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
