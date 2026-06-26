@@ -303,13 +303,7 @@ export default function CommissionsPage() {
                               {Number(rate.order_max_amount).toLocaleString()}
                             </span>
                           ) : (
-                            <Badge
-                              variant="secondary"
-                              className="flex items-center gap-1 w-fit"
-                            >
-                              <Infinity className="h-3 w-3" />
-                              No limit
-                            </Badge>
+                            "-"
                           )}
                         </TableCell>
                         <TableCell>
@@ -407,13 +401,7 @@ export default function CommissionsPage() {
                             {Number(rate.order_max_amount).toLocaleString()}
                           </p>
                         ) : (
-                          <Badge
-                            variant="secondary"
-                            className="flex items-center gap-1 w-fit text-xs"
-                          >
-                            <Infinity className="h-3 w-3" />
-                            No limit
-                          </Badge>
+                          "-"
                         )}
                       </div>
                       <div>
@@ -461,12 +449,7 @@ export default function CommissionsPage() {
 
             {/* Max Orders */}
             <div className="space-y-1.5">
-              <Label htmlFor="order_max_amount">
-                Max Orders{" "}
-                <span className="text-muted-foreground text-xs">
-                  (leave blank = no upper limit)
-                </span>
-              </Label>
+              <Label htmlFor="order_max_amount">Max Orders </Label>
               <Input
                 id="order_max_amount"
                 type="number"
