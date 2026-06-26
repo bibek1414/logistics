@@ -71,7 +71,7 @@ export default function RiderStatsPage({ params }: PageProps) {
     decodedPhone,
     startDateStr,
     endDateStr,
-    !!decodedPhone
+    !!decodedPhone,
   );
 
   const {
@@ -84,7 +84,7 @@ export default function RiderStatsPage({ params }: PageProps) {
     decodedPhone,
     startDateStr,
     endDateStr,
-    !!decodedPhone
+    !!decodedPhone,
   );
 
   const [ordersPage, setOrdersPage] = useState(1);
@@ -218,18 +218,7 @@ export default function RiderStatsPage({ params }: PageProps) {
                 Financial Performance
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 border border-gray-200 rounded-lg">
-                  <div className="text-xs text-gray-500 font-medium">
-                    Period Earnings
-                  </div>
-                  <div className="text-xl font-bold text-gray-900 mt-1">
-                    Rs.{" "}
-                    {(commissionData?.commission_earned || 0).toLocaleString(
-                      undefined,
-                      { minimumFractionDigits: 1, maximumFractionDigits: 2 }
-                    )}
-                  </div>
-                </div>
+                
 
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <div className="text-xs text-gray-500 font-medium">
@@ -239,7 +228,7 @@ export default function RiderStatsPage({ params }: PageProps) {
                     Rs.{" "}
                     {(commissionData?.remaining_balance || 0).toLocaleString(
                       undefined,
-                      { minimumFractionDigits: 1, maximumFractionDigits: 2 }
+                      { minimumFractionDigits: 1, maximumFractionDigits: 2 },
                     )}
                   </div>
                 </div>
@@ -284,7 +273,7 @@ export default function RiderStatsPage({ params }: PageProps) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <div className="text-xs text-gray-500 font-medium">
-                    Assigned (Period)
+                    Assigned
                   </div>
                   <div className="text-xl font-bold text-gray-900 mt-1">
                     {packageData?.packages_assigned || 0}
@@ -293,7 +282,7 @@ export default function RiderStatsPage({ params }: PageProps) {
 
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <div className="text-xs text-gray-500 font-medium">
-                    Delivered (Period)
+                    Delivered
                   </div>
                   <div className="text-xl font-bold text-gray-900 mt-1">
                     {packageData?.packages_delivered || 0}
@@ -327,7 +316,9 @@ export default function RiderStatsPage({ params }: PageProps) {
                   Failed to load orders: {ordersError?.message}
                 </p>
               ) : !ordersData?.results || ordersData.results.length === 0 ? (
-                <p className="text-sm text-gray-500 py-4">No assigned orders found.</p>
+                <p className="text-sm text-gray-500 py-4">
+                  No assigned orders found.
+                </p>
               ) : (
                 <div className="space-y-4">
                   <div className="overflow-x-auto border border-gray-200 rounded-lg">
@@ -341,12 +332,15 @@ export default function RiderStatsPage({ params }: PageProps) {
                           <TableHead>Delivery Address</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Collection Amount</TableHead>
-                          <TableHead className="w-20 text-right">Actions</TableHead>
+                          <TableHead className="w-20 text-right">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {ordersData.results.map((order, index) => {
-                          const serialNumber = (ordersPage - 1) * ordersPageSize + index + 1;
+                          const serialNumber =
+                            (ordersPage - 1) * ordersPageSize + index + 1;
                           const collectionAmount =
                             parseFloat(order.total_amount?.toString() ?? "0") -
                             parseFloat(order.prepaid_amount?.toString() ?? "0");
@@ -369,7 +363,10 @@ export default function RiderStatsPage({ params }: PageProps) {
                               <TableCell className="text-gray-700">
                                 {order.phone_number}
                               </TableCell>
-                              <TableCell className="max-w-xs text-gray-700 truncate" title={order.delivery_address}>
+                              <TableCell
+                                className="max-w-xs text-gray-700 truncate"
+                                title={order.delivery_address}
+                              >
                                 {order.delivery_address}
                               </TableCell>
                               <TableCell className="text-sm">
@@ -382,9 +379,15 @@ export default function RiderStatsPage({ params }: PageProps) {
                               </TableCell>
                               <TableCell className="text-right">
                                 <Link href={`/track-order/${order.order_code}`}>
-                                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-gray-100">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 hover:bg-gray-100"
+                                  >
                                     <Eye className="h-4 w-4 text-gray-600" />
-                                    <span className="sr-only">View Details</span>
+                                    <span className="sr-only">
+                                      View Details
+                                    </span>
                                   </Button>
                                 </Link>
                               </TableCell>
@@ -400,14 +403,19 @@ export default function RiderStatsPage({ params }: PageProps) {
                     <div className="flex items-center justify-between py-2">
                       <div className="text-xs text-gray-500">
                         Showing {(ordersPage - 1) * ordersPageSize + 1} to{" "}
-                        {Math.min(ordersPage * ordersPageSize, ordersData.count)} of{" "}
-                        {ordersData.count} orders
+                        {Math.min(
+                          ordersPage * ordersPageSize,
+                          ordersData.count,
+                        )}{" "}
+                        of {ordersData.count} orders
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setOrdersPage((prev) => Math.max(prev - 1, 1))}
+                          onClick={() =>
+                            setOrdersPage((prev) => Math.max(prev - 1, 1))
+                          }
                           disabled={ordersPage === 1}
                           className="h-8 text-xs gap-1"
                         >
@@ -418,10 +426,16 @@ export default function RiderStatsPage({ params }: PageProps) {
                           size="sm"
                           onClick={() =>
                             setOrdersPage((prev) =>
-                              Math.min(prev + 1, Math.ceil(ordersData.count / ordersPageSize))
+                              Math.min(
+                                prev + 1,
+                                Math.ceil(ordersData.count / ordersPageSize),
+                              ),
                             )
                           }
-                          disabled={ordersPage === Math.ceil(ordersData.count / ordersPageSize)}
+                          disabled={
+                            ordersPage ===
+                            Math.ceil(ordersData.count / ordersPageSize)
+                          }
                           className="h-8 text-xs gap-1"
                         >
                           Next <ChevronRight className="h-3.5 w-3.5" />
