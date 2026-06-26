@@ -282,5 +282,35 @@ export class RiderService {
 
     return response.json();
   }
+
+  static async createRiderPayout(payload: {
+    rider: string;
+    amount: string;
+    remarks: string;
+  }) {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+
+    const response = await fetch(`${RiderService.baseURL}/api/logistics/rider-payout/`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: ${text || "Failed to create rider payout"}`
+      );
+    }
+
+    return response.json();
+  }
 }
 

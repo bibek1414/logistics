@@ -4,13 +4,14 @@ import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { RoleGuard } from "@/components/role-guard/role-guard";
 import { useAuth, Role } from "@/context/AuthContext";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useRiders,
   useRiderCommissionStats,
   useRiderPackageStats,
   useRiderOrders,
   useRiderCommissionPayments,
+  useCreateRiderPayout,
 } from "@/hooks/use-riders";
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { format } from "date-fns";
@@ -25,6 +26,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PageProps {
   params: Promise<{
@@ -37,12 +44,24 @@ export default function RiderStatsPage({ params }: PageProps) {
   const decodedPhone = decodeURIComponent(phone);
   const pathname = usePathname();
   const { user, isLoading: isAuthLoading, requireAuth } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     requireAuth(pathname);
   }, [user, isAuthLoading, pathname]);
 
-  const [activeTab, setActiveTab] = useState<"today" | "all" | "commission">("today");
+  const tabParam = searchParams.get("tab");
+  const activeTab =
+    tabParam === "today" || tabParam === "all" || tabParam === "commission"
+      ? tabParam
+      : "today";
+
+  const setActiveTab = (tab: "today" | "all" | "commission") => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", tab);
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   const [dateRange, setDateRange] = useState<
     { from?: Date; to?: Date } | undefined
@@ -129,6 +148,32 @@ export default function RiderStatsPage({ params }: PageProps) {
     paymentsPageSize,
     activeTab === "commission"
   );
+
+  // Payout states
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [payoutAmount, setPayoutAmount] = useState("");
+  const [payoutRemarks, setPayoutRemarks] = useState("");
+
+  const { mutate: createPayout, isPending: isCreatingPayout } = useCreateRiderPayout();
+
+  const handleSubmitPayout = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!decodedPhone) return;
+    createPayout(
+      {
+        rider: decodedPhone,
+        amount: payoutAmount,
+        remarks: payoutRemarks,
+      },
+      {
+        onSuccess: () => {
+          setShowAddForm(false);
+          setPayoutAmount("");
+          setPayoutRemarks("");
+        },
+      }
+    );
+  };
 
   const handleRetry = () => {
     refetchCommission();
@@ -349,9 +394,79 @@ export default function RiderStatsPage({ params }: PageProps) {
 
                 {/* Paid Commission History Table */}
                 <div className="space-y-4 pt-4">
-                  <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
-                    Paid Commission History
-                  </h2>
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <h2 className="text-lg font-bold text-gray-900">
+                      Paid Commission History
+                    </h2>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAddForm(true)}
+                      className="text-xs border-gray-200 text-gray-700 h-8"
+                    >
+                      Record Payout
+                    </Button>
+                  </div>
+
+                  <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Record New Payout</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleSubmitPayout} className="space-y-4 py-4">
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              Amount (Rs.)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              required
+                              value={payoutAmount}
+                              onChange={(e) => setPayoutAmount(e.target.value)}
+                              className="w-full h-10 px-3 border border-gray-200 rounded text-sm focus:outline-none focus:border-black"
+                              placeholder="e.g. 500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              Remarks
+                            </label>
+                            <input
+                              type="text"
+                              value={payoutRemarks}
+                              onChange={(e) => setPayoutRemarks(e.target.value)}
+                              className="w-full h-10 px-3 border border-gray-200 rounded text-sm focus:outline-none focus:border-black"
+                              placeholder="e.g. Paid weekly commission"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end space-x-2 pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setShowAddForm(false);
+                              setPayoutAmount("");
+                              setPayoutRemarks("");
+                            }}
+                            disabled={isCreatingPayout}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            disabled={isCreatingPayout}
+                            className="bg-black text-white hover:bg-gray-800"
+                          >
+                            {isCreatingPayout ? "Saving..." : "Submit"}
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
                   {isPaymentsLoading ? (
                     <div className="space-y-2">
                       {Array.from({ length: 3 }).map((_, i) => (

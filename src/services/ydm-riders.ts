@@ -34,14 +34,14 @@ export class YDMRiderOrdersAPI {
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `HTTP ${response.status}: ${errorText || "Request failed"}`
+        `HTTP ${response.status}: ${errorText || "Request failed"}`,
       );
     }
     return response;
   };
 
   static async getYDMRiderOrders(
-    filters?: YDMRiderOrderFilters
+    filters?: YDMRiderOrderFilters,
   ): Promise<SalesResponse> {
     const params = new URLSearchParams();
 
@@ -64,7 +64,7 @@ export class YDMRiderOrdersAPI {
       params.append("end_date", filters.endDate);
     }
 
-    const url = `${API_BASE_URL}/api/sales/orders/?${params.toString()}`;
+    const url = `${API_BASE_URL}/api/logistics/rider-orders/?${params.toString()}`;
 
     const response = await fetch(url, {
       headers: this.getAuthHeaders(),
@@ -77,9 +77,9 @@ export class YDMRiderOrdersAPI {
   static async updateOrderStatus(
     orderId: string,
     newStatus: string,
-    comment?: string
+    comment?: string,
   ): Promise<unknown> {
-    const url = `${API_BASE_URL}/api/sales/orders/${orderId}/`;
+    const url = `${API_BASE_URL}/api/logistics/rider-orders/${orderId}/`;
     const requestBody: UpdateOrderStatusRequest = {
       order_status: newStatus,
     };

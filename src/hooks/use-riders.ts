@@ -191,3 +191,22 @@ export const useRiderCommissionPayments = (
   };
 };
 
+export const useCreateRiderPayout = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    any,
+    Error,
+    { rider: string; amount: string; remarks: string }
+  >({
+    mutationFn: (payload) => RiderService.createRiderPayout(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rider-commission-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["rider-commission-stats"] });
+      toast.success("Payout recorded successfully");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to record payout");
+    },
+  });
+};
+

@@ -41,7 +41,7 @@ export interface RiderOrdersResponse {
 
 export interface RiderCommissionPayment {
   id: number;
-  rider: number;
+  rider: string | number;
   amount: string;
   paid_at: string;
   remarks: string;
