@@ -42,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     }
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-40">
+      <div className="bg-white border border-gray-200 rounded-lg -lg p-3 z-40">
         <div className="text-sm font-semibold text-gray-900 mb-2 border-b pb-1">
           {formattedDate}
         </div>
@@ -81,22 +81,22 @@ export function RiderDailyStatsChart({ riderPhone }: { riderPhone: string }) {
     return { from, to };
   });
 
-  const startDateStr = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
-  const endDateStr = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
+  const startDateStr = dateRange?.from
+    ? format(dateRange.from, "yyyy-MM-dd")
+    : undefined;
+  const endDateStr = dateRange?.to
+    ? format(dateRange.to, "yyyy-MM-dd")
+    : undefined;
 
-  const { data, isLoading, isError, error, refetch, isRefetching } = useRiderDailyStats(
-    riderPhone,
-    startDateStr,
-    endDateStr,
-    !!riderPhone
-  );
+  const { data, isLoading, isError, error, refetch, isRefetching } =
+    useRiderDailyStats(riderPhone, startDateStr, endDateStr, !!riderPhone);
 
   const handleClearDates = () => {
     setDateRange(undefined);
   };
 
   return (
-    <Card className="border border-gray-200 rounded-xl overflow-hidden">
+    <Card className="border border-gray-200 rounded-xl overflow-hidden shadow-none">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4 bg-gray-50/50">
         <div>
           <CardTitle className="text-base font-bold text-gray-900">
@@ -133,7 +133,9 @@ export function RiderDailyStatsChart({ riderPhone }: { riderPhone: string }) {
           </div>
         ) : isError ? (
           <div className="h-64 flex flex-col items-center justify-center text-red-500 gap-2">
-            <span>Failed to load chart data: {error?.message || "Unknown error"}</span>
+            <span>
+              Failed to load chart data: {error?.message || "Unknown error"}
+            </span>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
@@ -166,10 +168,7 @@ export function RiderDailyStatsChart({ riderPhone }: { riderPhone: string }) {
                     return value;
                   }}
                 />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 11 }}
-                />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   wrapperStyle={{ fontSize: "12px", paddingTop: "15px" }}
