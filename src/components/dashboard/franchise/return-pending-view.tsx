@@ -20,12 +20,13 @@ import { BulkExport } from "./components/bulk-export";
 import { useFranchise } from "@/hooks/use-franchises";
 import { FranchiseFilters } from "@/services/franchise";
 import { useDebounce } from "@/hooks/use-debounce";
+import { format } from "date-fns";
 
 export default function ReturnPendingView({ id }: { id: number }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(25);
   const [searchOrder, setSearchOrder] = useState("");
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date } | undefined>(undefined);
   const [filterDeliveryType, setFilterDeliveryType] = useState("all");
   const [showPendingOrders, setShowPendingOrders] = useState(false);
   const debouncedSearchOrder = useDebounce(searchOrder, 500);
@@ -39,8 +40,8 @@ export default function ReturnPendingView({ id }: { id: number }) {
       orderStatus: "Return Pending",
       deliveryType:
         filterDeliveryType !== "all" ? filterDeliveryType : undefined,
-      startDate: dateRange.from || undefined,
-      endDate: dateRange.to || undefined,
+      startDate: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined,
+      endDate: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined,
       isAssigned: undefined,
     }),
     [currentPage, pageSize, debouncedSearchOrder, filterDeliveryType, dateRange]
@@ -201,8 +202,8 @@ export default function ReturnPendingView({ id }: { id: number }) {
   const hasActiveFilters = () => {
     return (
       searchOrder !== "" ||
-      dateRange.from !== "" ||
-      dateRange.to !== "" ||
+      dateRange?.from !== undefined ||
+      dateRange?.to !== undefined ||
       filterDeliveryType !== "all" ||
       showPendingOrders
     );
@@ -210,7 +211,7 @@ export default function ReturnPendingView({ id }: { id: number }) {
 
   const clearAllFilters = () => {
     setSearchOrder("");
-    setDateRange({ from: "", to: "" });
+    setDateRange(undefined);
     setFilterDeliveryType("all");
     setShowPendingOrders(false);
     setCurrentPage(1);
@@ -306,14 +307,16 @@ export default function ReturnPendingView({ id }: { id: number }) {
           <CardContent className="p-0">
             <div className="px-4 py-2 bg-amber-50 border-b text-sm text-amber-800 font-medium">
               Showing {orders.length} of {totalCount} return pending orders
-              {(dateRange.from || dateRange.to) && (
+              {(dateRange?.from || dateRange?.to) && (
                 <span>
                   {" • Date: "}
                   {dateRange.from && dateRange.to
-                    ? `${dateRange.from} to ${dateRange.to}`
+                    ? `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to, "yyyy-MM-dd")}`
                     : dateRange.from
-                    ? `from ${dateRange.from}`
-                    : `until ${dateRange.to}`}
+                    ? `from ${format(dateRange.from, "yyyy-MM-dd")}`
+                    : dateRange.to
+                    ? `until ${format(dateRange.to, "yyyy-MM-dd")}`
+                    : ""}
                 </span>
               )}
               {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}

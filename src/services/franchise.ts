@@ -20,7 +20,9 @@ export class FranchiseAPI {
 
   static async list(): Promise<Franchise[]> {
     const token =
-      typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
 
     const response = await fetch(`${this.baseURL}/api/account/ydm-franchises`, {
       headers: {
@@ -32,7 +34,7 @@ export class FranchiseAPI {
     if (!response.ok) {
       const text = await response.text();
       throw new Error(
-        `HTTP ${response.status}: ${text || "Failed to fetch franchises"}`
+        `HTTP ${response.status}: ${text || "Failed to fetch franchises"}`,
       );
     }
 
@@ -42,10 +44,12 @@ export class FranchiseAPI {
 
   static async get(
     id: number,
-    filters?: FranchiseFilters
+    filters?: FranchiseFilters,
   ): Promise<SalesResponse> {
     const token =
-      typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
 
     // Build URL with base parameters
     const params = new URLSearchParams();
@@ -90,10 +94,10 @@ export class FranchiseAPI {
 
     // Add date filters - these will filter orders by date range
     if (filters?.startDate) {
-      params.append("start_date", filters.startDate);
+      params.append("ydm_start_date", filters.startDate);
     }
     if (filters?.endDate) {
-      params.append("end_date", filters.endDate);
+      params.append("ydm_end_date", filters.endDate);
     }
 
     if (filters?.isAssigned) {
@@ -112,7 +116,7 @@ export class FranchiseAPI {
     if (!response.ok) {
       const text = await response.text();
       throw new Error(
-        `HTTP ${response.status}: ${text || "Failed to fetch franchise"}`
+        `HTTP ${response.status}: ${text || "Failed to fetch franchise"}`,
       );
     }
 

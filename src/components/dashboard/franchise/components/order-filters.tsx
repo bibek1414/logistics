@@ -11,14 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Search, Calendar, MapPin, Filter } from "lucide-react";
+import DateRangePicker from "@/components/ui/date-range-picker";
 
 interface OrderFiltersProps {
   searchOrder: string;
   setSearchOrder: (value: string) => void;
   filterStatus: string;
   setFilterStatus: (value: string) => void;
-  dateRange: { from: string; to: string };
-  setDateRange: (value: { from: string; to: string }) => void;
+  dateRange: { from?: Date; to?: Date } | undefined;
+  setDateRange: (value: { from?: Date; to?: Date } | undefined) => void;
   filterDeliveryType: string;
   setFilterDeliveryType: (value: string) => void;
   hasActiveFilters: () => boolean;
@@ -58,28 +59,10 @@ export function OrderFilters({
           />
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <Input
-              type="date"
-              placeholder="From"
-              value={dateRange.from}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, from: e.target.value })
-              }
-              className="border-0 p-0 h-auto text-sm min-w-[120px]"
-            />
-            <span className="text-gray-400 text-sm">to</span>
-            <Input
-              type="date"
-              placeholder="To"
-              value={dateRange.to}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, to: e.target.value })
-              }
-              className="border-0 p-0 h-auto text-sm min-w-[120px]"
-            />
-          </div>
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+          />
           <Select
             value={filterDeliveryType}
             onValueChange={setFilterDeliveryType}

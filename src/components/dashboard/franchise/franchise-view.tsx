@@ -9,6 +9,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  Printer,
 } from "lucide-react";
 import { useAssignRider, useReassignRider } from "@/hooks/use-riders";
 import { useVerifyOrder } from "@/hooks/use-verify-order";
@@ -17,10 +18,11 @@ import { OrderFilters } from "./components/order-filters";
 import { BulkAssignment } from "./components/bulk-assignment";
 import { BulkVerification } from "./components/bulk-verification";
 import { OrdersTable } from "./components/orders-table";
-import { useFranchise } from "@/hooks/use-franchises";
+import { useFranchise, useFranchises } from "@/hooks/use-franchises";
 import { FranchiseFilters } from "@/services/franchise";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSearchParams } from "next/navigation";
+import { format } from "date-fns";
 
 export default function FranchiseView({ id }: { id: number }) {
   const searchParams = useSearchParams();
@@ -29,13 +31,20 @@ export default function FranchiseView({ id }: { id: number }) {
   const [pageSize] = useState(25);
   const [searchOrder, setSearchOrder] = useState("");
   const [filterStatus, setFilterStatus] = useState(
-    searchParams.get("status") || "all"
+    searchParams.get("status") || "all",
   );
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [dateRange, setDateRange] = useState<
+    { from?: Date; to?: Date } | undefined
+  >(undefined);
   const [filterDeliveryType, setFilterDeliveryType] = useState("all");
   const [filterIsAssigned, setFilterIsAssigned] = useState("all");
   const [showPendingOrders, setShowPendingOrders] = useState(false);
   const debouncedSearchOrder = useDebounce(searchOrder, 500);
+
+  // Get all franchises to find the current name
+  const { franchises } = useFranchises();
+  const currentFranchise = franchises.find((f) => f.id === id);
+  const franchiseName = currentFranchise?.name || `Franchise #${id}`;
 
   // Build filters for API
   const filters: FranchiseFilters = useMemo(
@@ -46,8 +55,10 @@ export default function FranchiseView({ id }: { id: number }) {
       orderStatus: filterStatus !== "all" ? filterStatus : undefined,
       deliveryType:
         filterDeliveryType !== "all" ? filterDeliveryType : undefined,
-      startDate: dateRange.from || undefined,
-      endDate: dateRange.to || undefined,
+      startDate: dateRange?.from
+        ? format(dateRange.from, "yyyy-MM-dd")
+        : undefined,
+      endDate: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined,
       isAssigned: filterIsAssigned !== "all" ? filterIsAssigned : undefined,
     }),
     [
@@ -58,7 +69,7 @@ export default function FranchiseView({ id }: { id: number }) {
       filterDeliveryType,
       dateRange,
       filterIsAssigned,
-    ]
+    ],
   );
 
   // Fetch data using the hook
@@ -71,16 +82,16 @@ export default function FranchiseView({ id }: { id: number }) {
     Record<string, string>
   >({});
   const [assigningOrders, setAssigningOrders] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(
-    null
+    null,
   );
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [bulkAssignAgent, setBulkAssignAgent] = useState("");
   const [isBulkAssigning, setIsBulkAssigning] = useState(false);
   const [verifyingOrders, setVerifyingOrders] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [isBulkVerifying, setIsBulkVerifying] = useState(false);
 
@@ -92,7 +103,7 @@ export default function FranchiseView({ id }: { id: number }) {
       return allOrders.filter(
         (order) =>
           order.order_status === "Sent to YDM" ||
-          order.order_status === "Verified"
+          order.order_status === "Verified",
       );
     }
     return allOrders;
@@ -105,12 +116,12 @@ export default function FranchiseView({ id }: { id: number }) {
   const canBulkAssign = useMemo(() => {
     if (selectedOrders.size === 0) return false;
     const selectedOrdersData = orders.filter((order) =>
-      selectedOrders.has(order.id.toString())
+      selectedOrders.has(order.id.toString()),
     );
     return selectedOrdersData.every(
       (order) =>
         order.order_status === "Verified" ||
-        order.order_status === "Rescheduled"
+        order.order_status === "Rescheduled",
     );
   }, [selectedOrders, orders]);
 
@@ -118,7 +129,7 @@ export default function FranchiseView({ id }: { id: number }) {
   const canBulkVerify = useMemo(() => {
     if (selectedOrders.size === 0) return false;
     const selectedOrdersData = orders.filter((order) =>
-      selectedOrders.has(order.id.toString())
+      selectedOrders.has(order.id.toString()),
     );
     // Cannot bulk verify if any selected order has restricted status
     return selectedOrdersData.every((order) => {
@@ -135,7 +146,7 @@ export default function FranchiseView({ id }: { id: number }) {
   const hasRestrictedOrders = useMemo(() => {
     if (selectedOrders.size === 0) return false;
     const selectedOrdersData = orders.filter((order) =>
-      selectedOrders.has(order.id.toString())
+      selectedOrders.has(order.id.toString()),
     );
     return selectedOrdersData.some((order) => {
       const status = order.order_status.toLowerCase();
@@ -155,7 +166,7 @@ export default function FranchiseView({ id }: { id: number }) {
     try {
       const order = orders.find((o) => o.id.toString() === orderId);
       const hasExistingAssignment = Boolean(
-        orderAssignments[orderId] || order?.ydm_rider
+        orderAssignments[orderId] || order?.ydm_rider,
       );
 
       await new Promise((resolve) => {
@@ -174,11 +185,11 @@ export default function FranchiseView({ id }: { id: number }) {
                 hasExistingAssignment
                   ? "Re-assignment failed:"
                   : "Assignment failed:",
-                error
+                error,
               );
               resolve(false);
             },
-          }
+          },
         );
       });
     } finally {
@@ -231,7 +242,7 @@ export default function FranchiseView({ id }: { id: number }) {
                 console.error("Bulk assignment (assign) failed:", error);
                 finalize();
               },
-            }
+            },
           );
         }
 
@@ -244,7 +255,7 @@ export default function FranchiseView({ id }: { id: number }) {
                 console.error("Bulk assignment (reassign) failed:", error);
                 finalize();
               },
-            }
+            },
           );
         }
       });
@@ -274,7 +285,7 @@ export default function FranchiseView({ id }: { id: number }) {
       orderStatus === "cancelled"
     ) {
       setAssignmentSuccess(
-        `Cannot change status of orders with "${order?.order_status}" status`
+        `Cannot change status of orders with "${order?.order_status}" status`,
       );
       setTimeout(() => setAssignmentSuccess(null), 3000);
       return;
@@ -289,7 +300,7 @@ export default function FranchiseView({ id }: { id: number }) {
           {
             onSuccess: () => {
               setAssignmentSuccess(
-                `Order ${orderId} ${status.toLowerCase()} successfully!`
+                `Order ${orderId} ${status.toLowerCase()} successfully!`,
               );
               setTimeout(() => setAssignmentSuccess(null), 2000);
               resolve(true);
@@ -298,7 +309,7 @@ export default function FranchiseView({ id }: { id: number }) {
               console.error("Verification failed:", error);
               resolve(false);
             },
-          }
+          },
         );
       });
     } finally {
@@ -316,7 +327,7 @@ export default function FranchiseView({ id }: { id: number }) {
     // Check if any selected orders have restricted statuses
     if (hasRestrictedOrders) {
       setAssignmentSuccess(
-        "Cannot change status of orders with 'Return Pending', 'Returned By YDM', or 'cancelled' status"
+        "Cannot change status of orders with 'Return Pending', 'Returned By YDM', or 'cancelled' status",
       );
       setTimeout(() => setAssignmentSuccess(null), 3000);
       return;
@@ -337,7 +348,7 @@ export default function FranchiseView({ id }: { id: number }) {
                   ? "marked as return pending"
                   : status.toLowerCase();
               setAssignmentSuccess(
-                `${selectedOrders.size} orders ${statusText} successfully!`
+                `${selectedOrders.size} orders ${statusText} successfully!`,
               );
               setSelectedOrders(new Set());
               setTimeout(() => setAssignmentSuccess(null), 2000);
@@ -347,7 +358,7 @@ export default function FranchiseView({ id }: { id: number }) {
               console.error("Bulk verification failed:", error);
               resolve(false);
             },
-          }
+          },
         );
       });
     } finally {
@@ -421,8 +432,8 @@ export default function FranchiseView({ id }: { id: number }) {
     return (
       searchOrder !== "" ||
       filterStatus !== "all" ||
-      dateRange.from !== "" ||
-      dateRange.to !== "" ||
+      dateRange?.from !== undefined ||
+      dateRange?.to !== undefined ||
       filterDeliveryType !== "all" ||
       filterIsAssigned !== "all" ||
       showPendingOrders
@@ -432,7 +443,7 @@ export default function FranchiseView({ id }: { id: number }) {
   const clearAllFilters = () => {
     setSearchOrder("");
     setFilterStatus("all");
-    setDateRange({ from: "", to: "" });
+    setDateRange(undefined);
     setFilterDeliveryType("all");
     setFilterIsAssigned("all");
     setShowPendingOrders(false);
@@ -451,8 +462,8 @@ export default function FranchiseView({ id }: { id: number }) {
   }
 
   return (
-    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col gap-4">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto print:p-0">
+      <div className="flex flex-col gap-4 print:hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Show bulk assignment only if selected orders can be assigned */}
           {canBulkAssign && (
@@ -536,6 +547,16 @@ export default function FranchiseView({ id }: { id: number }) {
                   <Package className="w-5 h-5 text-primary" />
                   Order Assignment Center
                 </CardTitle>
+                {filterStatus !== "all" && orders.length > 0 && (
+                  <Button
+                    onClick={() => window.print()}
+                    variant="outline"
+                    className="flex items-center gap-2 border-primary text-primary hover:bg-primary/5 cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print Orders ({orders.length})
+                  </Button>
+                )}
               </div>
               <OrderFilters
                 searchOrder={searchOrder}
@@ -559,14 +580,16 @@ export default function FranchiseView({ id }: { id: number }) {
             <div className="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
               Showing {orders.length} of{" "}
               {showPendingOrders ? allOrders.length : totalCount} orders
-              {(dateRange.from || dateRange.to) && (
+              {(dateRange?.from || dateRange?.to) && (
                 <span>
                   {" • Date: "}
                   {dateRange.from && dateRange.to
-                    ? `${dateRange.from} to ${dateRange.to}`
+                    ? `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to, "yyyy-MM-dd")}`
                     : dateRange.from
-                    ? `from ${dateRange.from}`
-                    : `until ${dateRange.to}`}
+                      ? `from ${format(dateRange.from, "yyyy-MM-dd")}`
+                      : dateRange.to
+                        ? `until ${format(dateRange.to, "yyyy-MM-dd")}`
+                        : ""}
                 </span>
               )}
               {filterDeliveryType !== "all" && ` • ${filterDeliveryType}`}
@@ -631,6 +654,145 @@ export default function FranchiseView({ id }: { id: number }) {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Printable Report View (only visible during printing) */}
+      <div
+        id="printable-report"
+        className="hidden print:block bg-white text-black"
+      >
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+          @media print {
+            @page {
+              size: auto;
+              margin: 0;
+            }
+            body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: white !important;
+            }
+            header, footer, nav, aside {
+              display: none !important;
+            }
+            body * {
+              visibility: hidden;
+            }
+            #printable-report, #printable-report * {
+              visibility: visible;
+            }
+            #printable-report {
+              position: absolute;
+              left: 1.5cm;
+              top: 1.5cm;
+              right: 1.5cm;
+              width: calc(100% - 3cm);
+              background: white;
+              color: black;
+              padding: 0;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `,
+          }}
+        />
+
+        {/* Header */}
+        <div className="border-b-2 border-gray-800 pb-4 mb-6 text-center">
+          <h1 className="text-2xl font-bold tracking-tight uppercase">
+            YDM Logistics
+          </h1>
+          <p className="text-sm text-gray-600">
+            Franchise: {franchiseName}
+          </p>
+        </div>
+
+        {/* Table */}
+        <table className="w-full text-xs border-collapse border border-gray-400 mb-8">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold w-8">
+                S.N.
+              </th>
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold">
+                Date
+              </th>
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold">
+                Tracking Code
+              </th>
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold">
+                Customer Name
+              </th>
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold">
+                Phone
+              </th>
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold">
+                Address
+              </th>
+
+              <th className="border border-gray-400 px-2 py-2 text-left font-semibold">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order, index) => {
+              const orderDate = order.sent_to_ydm_date
+                ? formatDate(order.sent_to_ydm_date)
+                : null;
+              const collectionAmount =
+                parseFloat(order.total_amount?.toString() ?? "0") -
+                parseFloat(order.prepaid_amount?.toString() ?? "0");
+
+              return (
+                <tr key={order.id}>
+                  <td className="border border-gray-400 px-2 py-1.5">
+                    {index + 1}
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1.5">
+                    {orderDate ? `${orderDate.date} ${orderDate.time}` : "N/A"}
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1.5 font-mono font-medium">
+                    {order.order_code || "N/A"}
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1.5">
+                    {order.full_name}
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1.5">
+                    {order.phone_number}
+                  </td>
+                  <td className="border border-gray-400 px-2 py-1.5">
+                    {order.delivery_address}, {order.city}
+                  </td>
+
+                  <td className="border border-gray-400 px-2 py-1.5 font-medium">
+                    {order.order_status}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Signature lines */}
+        <div className="mt-20 grid grid-cols-3 gap-8 text-center text-xs">
+          <div>
+            <div className="border-b border-black w-40 mx-auto mb-2"></div>
+            <p className="font-semibold text-gray-800">Prepared By</p>
+          </div>
+          <div>
+            <div className="border-b border-black w-40 mx-auto mb-2"></div>
+            <p className="font-semibold text-gray-800">Checked By</p>
+          </div>
+          <div>
+            <div className="border-b border-black w-40 mx-auto mb-2"></div>
+            <p className="font-semibold text-gray-800">Approved By</p>
+          </div>
+        </div>
       </div>
     </div>
   );
