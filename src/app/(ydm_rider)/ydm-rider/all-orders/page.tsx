@@ -195,10 +195,22 @@ function AllOrdersPageContent() {
                 <p className="text-xs text-gray-500 mt-0.5">Filter by date range and delivery status.</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <DateRangePicker
-                  value={dateRange}
-                  onChange={setDateRange}
-                />
+                <div className="flex items-center gap-2">
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={setDateRange}
+                  />
+                  {dateRange && (dateRange.from || dateRange.to) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDateRange(undefined)}
+                      className="h-10 text-gray-600 border-gray-200 hover:bg-gray-50 cursor-pointer"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
                 <Select
                   value={filters.orderStatus}
                   onValueChange={(val) => handleFiltersChange({ orderStatus: val })}

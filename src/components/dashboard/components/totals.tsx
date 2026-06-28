@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 // Helper to prettify keys
 const formatKey = (key: string) => {
@@ -59,33 +60,6 @@ export function Totals({ id }: { id: number }) {
     endDate,
   );
 
-  if (isLoadingStats) {
-    return (
-      <div className="max-w-7xl mx-auto py-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-9 w-56" />
-          </div>
-          <div className="p-6 space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex gap-4">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-5 w-16 ml-auto" />
-                <Skeleton className="h-5 w-20" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats?.data) {
-    return <div>No data available</div>;
-  }
-
   // Helper function to format amount
   const formatAmount = (amount: number) => {
     return amount.toLocaleString();
@@ -101,39 +75,41 @@ export function Totals({ id }: { id: number }) {
     subtotalAmount: number;
   }[] = [];
 
-  Object.entries(stats.data).forEach(([category, value]) => {
-    if (category === "Total Orders") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      totalOrdersNos = (value as any).nos;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      totalOrdersAmount = (value as any).amount;
-      return;
-    }
+  if (stats?.data) {
+    Object.entries(stats.data).forEach(([category, value]) => {
+      if (category === "Total Orders") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        totalOrdersNos = (value as any).nos;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        totalOrdersAmount = (value as any).amount;
+        return;
+      }
 
-    if (typeof value === "object" && !("nos" in value)) {
-      let subtotalNos = 0;
-      let subtotalAmount = 0;
+      if (typeof value === "object" && !("nos" in value)) {
+        let subtotalNos = 0;
+        let subtotalAmount = 0;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rows = Object.entries(value).map(([status, details]: any) => {
-        subtotalNos += details.nos;
-        subtotalAmount += details.amount;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rows = Object.entries(value).map(([status, details]: any) => {
+          subtotalNos += details.nos;
+          subtotalAmount += details.amount;
 
-        return {
-          status: formatKey(status),
-          nos: details.nos,
-          amount: details.amount,
-        };
-      });
+          return {
+            status: formatKey(status),
+            nos: details.nos,
+            amount: details.amount,
+          };
+        });
 
-      categories.push({
-        name: formatKey(category),
-        rows,
-        subtotalNos,
-        subtotalAmount,
-      });
-    }
-  });
+        categories.push({
+          name: formatKey(category),
+          rows,
+          subtotalNos,
+          subtotalAmount,
+        });
+      }
+    });
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-6">
@@ -143,87 +119,114 @@ export function Totals({ id }: { id: number }) {
           <h3 className="text-lg font-semibold text-gray-900">
             Detailed Breakdown
           </h3>
-          {/* Date range filter */}
-          <DateRangePicker value={dateRange} onChange={setDateRange} />
+          {/* Date range filter with clear button */}
+          <div className="flex items-center gap-2">
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
+            {dateRange && (dateRange.from || dateRange.to) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDateRange(undefined)}
+                className="h-10 text-gray-600 border-gray-200 hover:bg-gray-50 cursor-pointer animate-in fade-in duration-200"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Orders
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((cat) => (
-                <React.Fragment key={cat.name}>
-                  {cat.rows.map((row, rowIdx) => {
-                    return (
-                      <tr key={`${cat.name}-${rowIdx}`}>
-                        {rowIdx === 0 && (
-                          <td
-                            className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top"
-                            rowSpan={cat.rows.length + 1}
-                          >
-                            {cat.name}
+        {isLoadingStats ? (
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-16 ml-auto" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
+          </div>
+        ) : !stats?.data ? (
+          <div className="p-6 text-center text-gray-500">No data available</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Orders
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {categories.map((cat) => (
+                  <React.Fragment key={cat.name}>
+                    {cat.rows.map((row, rowIdx) => {
+                      return (
+                        <tr key={`${cat.name}-${rowIdx}`}>
+                          {rowIdx === 0 && (
+                            <td
+                              className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top"
+                              rowSpan={cat.rows.length + 1}
+                            >
+                              {cat.name}
+                            </td>
+                          )}
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <StatusBadge status={row.status} />
                           </td>
-                        )}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status={row.status} />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
-                          {row.nos.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
-                          Rs. {row.amount.toLocaleString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {/* Subtotal Row */}
-                  <tr className="bg-gray-50 font-semibold">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      Subtotal
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {cat.subtotalNos.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      Rs. {cat.subtotalAmount.toLocaleString()}
-                    </td>
-                  </tr>
-                </React.Fragment>
-              ))}
-            </tbody>
-            <tfoot className="bg-blue-50">
-              <tr className="font-bold">
-                <td
-                  className="px-6 py-4 text-sm text-gray-900 text-right"
-                  colSpan={2}
-                >
-                  Grand Total
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  {totalOrdersNos.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  Rs. {totalOrdersAmount.toLocaleString()}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                            {row.nos.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                            Rs. {row.amount.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {/* Subtotal Row */}
+                    <tr className="bg-gray-50 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        Subtotal
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {cat.subtotalNos.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        Rs. {cat.subtotalAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                ))}
+              </tbody>
+              <tfoot className="bg-blue-50">
+                <tr className="font-bold">
+                  <td
+                    className="px-6 py-4 text-sm text-gray-900 text-right"
+                    colSpan={2}
+                  >
+                    Grand Total
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    {totalOrdersNos.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    Rs. {totalOrdersAmount.toLocaleString()}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

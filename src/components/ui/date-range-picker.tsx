@@ -32,12 +32,11 @@ export default function DateRangePicker({
 }: DateRangePickerProps) {
   // Use the provided value and onChange props, or fall back to internal state
   const [date, setDate] = React.useState<DateRange | undefined>(value);
+  const [open, setOpen] = React.useState(false);
 
-  // Update internal state when props change
+  // Update internal state when props change (handling clear / parent state updates)
   React.useEffect(() => {
-    if (value !== undefined) {
-      setDate(value);
-    }
+    setDate(value);
   }, [value]);
 
   // Handle date changes
@@ -53,6 +52,11 @@ export default function DateRangePicker({
     if (onChange) {
       onChange(convertedDate);
     }
+
+    // Auto-close popover when both start and end dates are selected
+    if (newDate?.from && newDate?.to) {
+      setOpen(false);
+    }
   };
 
   // Convert local DateRange to react-day-picker DateRange for the Calendar component
@@ -66,14 +70,14 @@ export default function DateRangePicker({
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant="outline"
             className={cn(
               "w-full md:w-[240px] justify-start text-left font-normal h-10",
-              !date && "text-muted-foreground"
+              (!date || (!date.from && !date.to)) && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
