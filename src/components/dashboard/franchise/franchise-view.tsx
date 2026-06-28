@@ -706,9 +706,7 @@ export default function FranchiseView({ id }: { id: number }) {
           <h1 className="text-2xl font-bold tracking-tight uppercase">
             YDM Logistics
           </h1>
-          <p className="text-sm text-gray-600">
-            Franchise: {franchiseName}
-          </p>
+          <p className="text-sm text-gray-600">Franchise: {franchiseName}</p>
         </div>
 
         {/* Table */}
@@ -770,10 +768,9 @@ export default function FranchiseView({ id }: { id: number }) {
                   </td>
 
                   <td className="border border-gray-400 px-2 py-1.5 font-medium">
-                    <div>{order.order_status}</div>
                     {order.status_change_comment && (
-                      <div className="text-[10px] text-gray-600 font-normal italic mt-0.5">
-                        Comment: {order.status_change_comment}
+                      <div className=" font-normal  mt-0.5">
+                        {order.status_change_comment}
                       </div>
                     )}
                   </td>
