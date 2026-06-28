@@ -176,6 +176,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  onClick,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
@@ -184,6 +185,13 @@ function CalendarDayButton({
   React.useEffect(() => {
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick(e);
+    }
+  };
 
   return (
     <Button
@@ -205,6 +213,7 @@ function CalendarDayButton({
         defaultClassNames.day,
         className
       )}
+      onClick={handleClick}
       {...props}
     />
   )

@@ -53,8 +53,8 @@ export default function DateRangePicker({
       onChange(convertedDate);
     }
 
-    // Auto-close popover when both start and end dates are selected
-    if (newDate?.from && newDate?.to) {
+    // Auto-close popover when both start and end dates are selected and they are different
+    if (newDate?.from && newDate?.to && newDate.from.getTime() !== newDate.to.getTime()) {
       setOpen(false);
     }
   };
