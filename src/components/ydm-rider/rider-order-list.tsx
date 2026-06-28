@@ -31,7 +31,7 @@ interface YDMRiderOrderListProps {
   pageSize: number;
   onFiltersChange: (filters: YDMRiderOrderFilters) => void;
   onStatusUpdate: (orderId: string, newStatus: string, comment?: string) => void;
-  onVerifyOrder?: (orderCode: string, deliveryLocationType: string) => void;
+  onVerifyOrder?: (orderCode: string, deliveryLocationType: string) => Promise<void> | void;
 }
 
 export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
@@ -55,18 +55,31 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
   } | null>(null);
   // Track which order codes are awaiting location selection (desktop)
   const [pendingLocationOrders, setPendingLocationOrders] = useState<Set<string>>(new Set());
+  // Track which orders are currently verifying (desktop)
+  const [verifyingOrders, setVerifyingOrders] = useState<Set<string>>(new Set());
 
   const handleDesktopVerifyClick = (orderCode: string) => {
     setPendingLocationOrders((prev) => new Set(prev).add(orderCode));
   };
 
-  const handleDesktopLocationSelect = (orderCode: string, locationType: string) => {
+  const handleDesktopLocationSelect = async (orderCode: string, locationType: string) => {
     setPendingLocationOrders((prev) => {
       const next = new Set(prev);
       next.delete(orderCode);
       return next;
     });
-    onVerifyOrder?.(orderCode, locationType);
+    setVerifyingOrders((prev) => new Set(prev).add(orderCode));
+    try {
+      await onVerifyOrder?.(orderCode, locationType);
+    } catch (error) {
+      console.error("Failed to verify order:", error);
+    } finally {
+      setVerifyingOrders((prev) => {
+        const next = new Set(prev);
+        next.delete(orderCode);
+        return next;
+      });
+    }
   };
 
   const handleDesktopLocationCancel = (orderCode: string) => {
@@ -252,8 +265,28 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                   <TableBody>
                     {orders.map((order, index) => {
                       const serialNumber = (currentPage - 1) * pageSize + index + 1;
+                      const orderId = String(order.id);
+                      const isUpdating = updatingStatuses.has(orderId) || verifyingOrders.has(order.order_code);
+
+                      if (isUpdating) {
+                        return (
+                          <TableRow key={orderId}>
+                            <TableCell className="font-medium text-gray-600">
+                              {serialNumber}
+                            </TableCell>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-28" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
+                          </TableRow>
+                        );
+                      }
+
                       return (
-                        <TableRow key={String(order.id)}>
+                        <TableRow key={orderId}>
                           <TableCell className="font-medium text-gray-600">
                             {serialNumber}
                           </TableCell>

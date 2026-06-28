@@ -35,6 +35,7 @@ const RiderOrdersPage: React.FC = () => {
         newStatus,
         comment
       });
+      await refetch();
     } catch (err) {
       throw err;
     }
@@ -43,6 +44,7 @@ const RiderOrdersPage: React.FC = () => {
   const handleVerifyOrder = async (orderCode: string, deliveryLocationType: string) => {
     try {
       await verifyOrderMutation.mutateAsync({ orderCode, deliveryLocationType });
+      await refetch();
     } catch (err) {
       throw err;
     }
@@ -56,7 +58,7 @@ const RiderOrdersPage: React.FC = () => {
     <div className="max-w-7xl px-4 mx-auto p-4 space-y-6">
       <YDMRiderOrderList
         orders={orders}
-        loading={loading || updateOrderStatusMutation.isPending || verifyOrderMutation.isPending}
+        loading={loading}
         error={errorMessage}
         totalCount={totalCount}
         currentPage={filters.page}

@@ -79,7 +79,7 @@ export class YDMRiderOrdersAPI {
     newStatus: string,
     comment?: string,
   ): Promise<unknown> {
-    const url = `${API_BASE_URL}/api/logistics/rider-orders/${orderId}/`;
+    const url = `${API_BASE_URL}/api/sales/orders/${orderId}/`;
     const requestBody: UpdateOrderStatusRequest = {
       order_status: newStatus,
     };

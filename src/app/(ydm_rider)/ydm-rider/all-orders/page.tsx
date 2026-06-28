@@ -131,6 +131,7 @@ function AllOrdersPageContent() {
         newStatus,
         comment
       });
+      await refetch();
     } catch (err) {
       throw err;
     }
@@ -139,6 +140,7 @@ function AllOrdersPageContent() {
   const handleVerifyOrder = async (orderCode: string, deliveryLocationType: string) => {
     try {
       await verifyOrderMutation.mutateAsync({ orderCode, deliveryLocationType });
+      await refetch();
     } catch (err) {
       throw err;
     }
@@ -279,7 +281,7 @@ function AllOrdersPageContent() {
             {/* Assigned Orders List */}
             <YDMRiderOrderList
               orders={orders}
-              loading={loading || updateOrderStatusMutation.isPending || verifyOrderMutation.isPending}
+              loading={loading}
               error={errorMessage}
               totalCount={totalCount}
               currentPage={filters.page}

@@ -64,7 +64,7 @@ interface MobileOrderViewProps {
     newStatus: string,
     comment?: string,
   ) => void;
-  onVerifyOrder?: (orderCode: string, deliveryLocationType: string) => void;
+  onVerifyOrder?: (orderCode: string, deliveryLocationType: string) => Promise<void> | void;
 }
 
 type StatusTab =
@@ -117,18 +117,31 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
   } | null>(null);
   // Track which order codes are in "pick delivery location" mode
   const [pendingLocationOrders, setPendingLocationOrders] = useState<Set<string>>(new Set());
+  // Track which orders are currently verifying
+  const [verifyingOrders, setVerifyingOrders] = useState<Set<string>>(new Set());
 
   const handleVerifyClick = (orderCode: string) => {
     setPendingLocationOrders((prev) => new Set(prev).add(orderCode));
   };
 
-  const handleLocationSelect = (orderCode: string, locationType: string) => {
+  const handleLocationSelect = async (orderCode: string, locationType: string) => {
     setPendingLocationOrders((prev) => {
       const next = new Set(prev);
       next.delete(orderCode);
       return next;
     });
-    onVerifyOrder?.(orderCode, locationType);
+    setVerifyingOrders((prev) => new Set(prev).add(orderCode));
+    try {
+      await onVerifyOrder?.(orderCode, locationType);
+    } catch (error) {
+      console.error("Failed to verify order:", error);
+    } finally {
+      setVerifyingOrders((prev) => {
+        const next = new Set(prev);
+        next.delete(orderCode);
+        return next;
+      });
+    }
   };
 
   const handleLocationCancel = (orderCode: string) => {
@@ -395,8 +408,69 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
               parseFloat(order.total_amount?.toString() ?? "0") -
               parseFloat(order.prepaid_amount?.toString() ?? "0");
 
+            const orderId = String(order.id);
+            const isUpdating = updatingStatuses.has(orderId) || verifyingOrders.has(order.order_code);
+
+            if (isUpdating) {
+              return (
+                <Card key={orderId} className="py-0 gap-1 overflow-hidden">
+                  {/* Skeleton header */}
+                  <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-[10px] font-medium text-gray-600 bg-white px-2 py-1 rounded border">
+                        {serialNumber}
+                      </span>
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                    </div>
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+
+                  <CardContent className="py-0 p-3 space-y-3">
+                    {/* Customer info */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-5 rounded-full" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-28" />
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Skeleton className="h-4 w-4 mt-0.5" />
+                        <Skeleton className="h-4 w-48" />
+                      </div>
+                    </div>
+
+                    {/* Payment box */}
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      <Skeleton className="h-4 w-28 mb-1" />
+                      <div className="flex justify-between">
+                        <Skeleton className="h-3 w-12" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <div className="flex justify-between">
+                        <Skeleton className="h-3 w-14" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <div className="flex justify-between pt-1 border-t">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+
+                    {/* Action button */}
+                    <div className="flex justify-center">
+                      <Skeleton className="h-8 w-28 rounded-md" />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            }
+
             return (
-              <Card key={String(order.id)} className="py-0 gap-1">
+              <Card key={orderId} className="py-0 gap-1">
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 border-b bg-gray-50">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
