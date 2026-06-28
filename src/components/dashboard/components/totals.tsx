@@ -1,6 +1,9 @@
 "use client";
 import { useDashboardStats } from "@/hooks/use-dashboard";
-import React from "react";
+import React, { useState } from "react";
+import { format } from "date-fns";
+import DateRangePicker from "@/components/ui/date-range-picker";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Helper to prettify keys
 const formatKey = (key: string) => {
@@ -39,10 +42,44 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export function Totals({ id }: { id: number }) {
-  const { stats, isLoading: isLoadingStats } = useDashboardStats(id);
+  const [dateRange, setDateRange] = useState<
+    { from?: Date; to?: Date } | undefined
+  >(undefined);
+
+  const startDate = dateRange?.from
+    ? format(dateRange.from, "yyyy-MM-dd")
+    : undefined;
+  const endDate = dateRange?.to
+    ? format(dateRange.to, "yyyy-MM-dd")
+    : undefined;
+
+  const { stats, isLoading: isLoadingStats } = useDashboardStats(
+    id,
+    startDate,
+    endDate,
+  );
 
   if (isLoadingStats) {
-    return <div>Loading...</div>;
+    return (
+      <div className="max-w-7xl mx-auto py-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-9 w-56" />
+          </div>
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-16 ml-auto" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!stats?.data) {
@@ -102,10 +139,12 @@ export function Totals({ id }: { id: number }) {
     <div className="max-w-7xl mx-auto py-6">
       {/* Summary Table - Optional detailed view */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h3 className="text-lg font-semibold text-gray-900">
             Detailed Breakdown
           </h3>
+          {/* Date range filter */}
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
         </div>
 
         <div className="overflow-x-auto">

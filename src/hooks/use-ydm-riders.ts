@@ -10,6 +10,11 @@ interface UpdateOrderStatusParams {
    comment?: string;
 }
 
+interface VerifyOrderParams {
+  orderCode: string;
+  deliveryLocationType: string;
+}
+
 interface UseYDMRiderOrderMutationsOptions {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
@@ -87,7 +92,8 @@ export const useYDMRiderOrderMutations = ({
   });
 
   const verifyOrderMutation = useMutation({
-    mutationFn: (orderCode: string) => YDMRiderOrdersAPI.verifyOrder(orderCode),
+    mutationFn: ({ orderCode, deliveryLocationType }: VerifyOrderParams) =>
+      YDMRiderOrdersAPI.verifyOrder(orderCode, deliveryLocationType),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["ydmRiderOrders"],

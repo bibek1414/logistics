@@ -2,11 +2,15 @@ import { DashboardService } from "@/services/dashboard.service";
 import { OrderTrackingResponse } from "@/types/dashboard/stats";
 import { useQuery } from "@tanstack/react-query";
 
-export const useDashboardStats = (id: number) => {
+export const useDashboardStats = (
+  id: number,
+  startDate?: string,
+  endDate?: string,
+) => {
   const { data, isLoading, isError, error, refetch, isRefetching } =
     useQuery<OrderTrackingResponse>({
-      queryKey: ["dashboard-stats", id],
-      queryFn: () => DashboardService.getDashboardStats(id),
+      queryKey: ["dashboard-stats", id, startDate, endDate],
+      queryFn: () => DashboardService.getDashboardStats(id, startDate, endDate),
       retry: 1,
       staleTime: 30 * 1000,
       gcTime: 5 * 60 * 1000,

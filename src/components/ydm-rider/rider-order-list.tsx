@@ -31,7 +31,7 @@ interface YDMRiderOrderListProps {
   pageSize: number;
   onFiltersChange: (filters: YDMRiderOrderFilters) => void;
   onStatusUpdate: (orderId: string, newStatus: string, comment?: string) => void;
-  onVerifyOrder?: (orderCode: string) => void;
+  onVerifyOrder?: (orderCode: string, deliveryLocationType: string) => void;
 }
 
 export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
@@ -53,6 +53,29 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
     orderId: string;
     newStatus: string;
   } | null>(null);
+  // Track which order codes are awaiting location selection (desktop)
+  const [pendingLocationOrders, setPendingLocationOrders] = useState<Set<string>>(new Set());
+
+  const handleDesktopVerifyClick = (orderCode: string) => {
+    setPendingLocationOrders((prev) => new Set(prev).add(orderCode));
+  };
+
+  const handleDesktopLocationSelect = (orderCode: string, locationType: string) => {
+    setPendingLocationOrders((prev) => {
+      const next = new Set(prev);
+      next.delete(orderCode);
+      return next;
+    });
+    onVerifyOrder?.(orderCode, locationType);
+  };
+
+  const handleDesktopLocationCancel = (orderCode: string) => {
+    setPendingLocationOrders((prev) => {
+      const next = new Set(prev);
+      next.delete(orderCode);
+      return next;
+    });
+  };
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -291,11 +314,37 @@ export const YDMRiderOrderList: React.FC<YDMRiderOrderListProps> = ({
                                 <span className="text-xs text-green-600 font-semibold px-2 py-1 bg-green-50 border border-green-200 rounded whitespace-nowrap">
                                   ✓ Verified
                                 </span>
+                              ) : pendingLocationOrders.has(order.order_code) ? (
+                                <div className="flex flex-col gap-1 min-w-[200px]">
+                                  <span className="text-[10px] text-gray-500 font-medium">Select location:</span>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleDesktopLocationSelect(order.order_code, "Inside Ringroad")}
+                                      className="text-xs h-7 px-2 bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
+                                    >
+                                      Inside Ringroad
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleDesktopLocationSelect(order.order_code, "Outside Ringroad")}
+                                      className="text-xs h-7 px-2 bg-indigo-600 hover:bg-indigo-700 text-white whitespace-nowrap"
+                                    >
+                                      Outside Ringroad
+                                    </Button>
+                                  </div>
+                                  <button
+                                    onClick={() => handleDesktopLocationCancel(order.order_code)}
+                                    className="text-[10px] text-gray-400 underline text-left cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
                               ) : (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => onVerifyOrder?.(order.order_code)}
+                                  onClick={() => handleDesktopVerifyClick(order.order_code)}
                                   className="text-xs h-8 text-blue-600 border-blue-600 hover:bg-blue-50 hover:text-blue-750 whitespace-nowrap"
                                 >
                                   Verify Order

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Eye, LocateIcon, MapPin, Phone, Pin } from "lucide-react";
 import Link from "next/link";
 import { SaleItem, YDMRiderOrderFilters } from "@/types/sales";
@@ -12,9 +13,12 @@ import { ContactButton } from "./contact-button";
 import { CustomerPhone } from "./customer-phone";
 import { StatusSelector } from "./status-selector";
 
-const getWhatsAppLink = (phone: string | null | undefined, countryCode?: string | null) => {
+const getWhatsAppLink = (
+  phone: string | null | undefined,
+  countryCode?: string | null,
+) => {
   if (!phone) return "";
-  
+
   let formattedPhone = phone.trim();
   if (formattedPhone.startsWith("00")) {
     formattedPhone = "+" + formattedPhone.substring(2);
@@ -58,9 +62,9 @@ interface MobileOrderViewProps {
   onStatusUpdate: (
     orderId: string,
     newStatus: string,
-    comment?: string
+    comment?: string,
   ) => void;
-  onVerifyOrder?: (orderCode: string) => void;
+  onVerifyOrder?: (orderCode: string, deliveryLocationType: string) => void;
 }
 
 type StatusTab =
@@ -104,13 +108,36 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
   const [activeTab, setActiveTab] = useState<StatusTab>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingStatuses, setUpdatingStatuses] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
     orderId: string;
     newStatus: string;
   } | null>(null);
+  // Track which order codes are in "pick delivery location" mode
+  const [pendingLocationOrders, setPendingLocationOrders] = useState<Set<string>>(new Set());
+
+  const handleVerifyClick = (orderCode: string) => {
+    setPendingLocationOrders((prev) => new Set(prev).add(orderCode));
+  };
+
+  const handleLocationSelect = (orderCode: string, locationType: string) => {
+    setPendingLocationOrders((prev) => {
+      const next = new Set(prev);
+      next.delete(orderCode);
+      return next;
+    });
+    onVerifyOrder?.(orderCode, locationType);
+  };
+
+  const handleLocationCancel = (orderCode: string) => {
+    setPendingLocationOrders((prev) => {
+      const next = new Set(prev);
+      next.delete(orderCode);
+      return next;
+    });
+  };
 
   // Function to handle phone calls
   const handlePhoneCall = (phoneNumber: string) => {
@@ -141,7 +168,7 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
   const handleStatusUpdate = async (
     orderId: string,
     newStatus: string,
-    comment?: string
+    comment?: string,
   ) => {
     setUpdatingStatuses((prev) => new Set(prev).add(orderId));
     try {
@@ -162,7 +189,7 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
       handleStatusUpdate(
         pendingStatusUpdate.orderId,
         pendingStatusUpdate.newStatus,
-        comment
+        comment,
       );
       setCommentDialogOpen(false);
       setPendingStatusUpdate(null);
@@ -303,12 +330,55 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, index) => (
-            <Card key={index} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-2 w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <Card key={index} className="py-0 gap-1 overflow-hidden">
+              {/* Skeleton header */}
+              <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Skeleton className="h-6 w-6 rounded" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </div>
+
+              <CardContent className="py-0 p-3 space-y-3">
+                {/* Customer info */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-5 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Skeleton className="h-4 w-4 mt-0.5" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+
+                {/* Payment box */}
+                <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                  <Skeleton className="h-4 w-28 mb-1" />
+                  <div className="flex justify-between">
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <div className="flex justify-between">
+                    <Skeleton className="h-3 w-14" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <div className="flex justify-between pt-1 border-t">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+
+                {/* Action button */}
+                <div className="flex justify-center">
+                  <Skeleton className="h-8 w-28 rounded-md" />
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -346,12 +416,12 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                         order.order_status === "Delivered"
                           ? "bg-green-100 text-green-800"
                           : order.order_status === "Out For Delivery"
-                          ? "bg-blue-100 text-blue-800"
-                          : order.order_status === "Return Pending"
-                          ? "bg-red-100 text-red-800"
-                          : order.order_status === "Rescheduled"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
+                            ? "bg-blue-100 text-blue-800"
+                            : order.order_status === "Return Pending"
+                              ? "bg-red-100 text-red-800"
+                              : order.order_status === "Rescheduled"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {order.order_status}
@@ -384,10 +454,10 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                     />
 
                     <div className="flex items-start gap-2">
-                     <MapPin className="h-4 w-4" />
+                      <MapPin className="h-4 w-4" />
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          order.delivery_address
+                          order.delivery_address,
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -428,15 +498,49 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                   {/* Status / Verification Actions */}
                   <div className="mt-2 mb-1">
                     {!order.is_rider_verified ? (
-                      <div className="flex justify-center w-full">
-                        <Button
-                          size="sm"
-                          onClick={() => onVerifyOrder?.(order.order_code)}
-                          className="w-fit bg-blue-600 hover:bg-blue-700 text-white font-medium h-8 text-xs flex items-center justify-center gap-1 px-4"
-                        >
-                          Verify Order
-                        </Button>
-                      </div>
+                      pendingLocationOrders.has(order.order_code) ? (
+                        // Location picker — shown after "Verify Order" is tapped
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-xs text-gray-500 font-medium">Select delivery location:</p>
+                          <div className="flex gap-2 w-full">
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handleLocationSelect(order.order_code, "Inside Ringroad")
+                              }
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium h-8 text-xs"
+                            >
+                              Inside Ringroad
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handleLocationSelect(order.order_code, "Outside Ringroad")
+                              }
+                              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-8 text-xs"
+                            >
+                              Outside Ringroad
+                            </Button>
+                          </div>
+                          <button
+                            onClick={() => handleLocationCancel(order.order_code)}
+                            className="text-[10px] text-gray-400 underline cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        // Initial "Verify Order" button
+                        <div className="flex justify-center w-full">
+                          <Button
+                            size="sm"
+                            onClick={() => handleVerifyClick(order.order_code)}
+                            className="w-fit bg-blue-600 hover:bg-blue-700 text-white font-medium h-8 text-xs flex items-center justify-center gap-1 px-4"
+                          >
+                            Verify Order
+                          </Button>
+                        </div>
+                      )
                     ) : (
                       <div>{getStatusActions(order)}</div>
                     )}
@@ -466,9 +570,15 @@ export const MobileOrderView: React.FC<MobileOrderViewProps> = ({
                               buttonText=" Franchise"
                             />
                           )}
-                        {getWhatsAppLink(order.phone_number, order.country_code) && (
+                        {getWhatsAppLink(
+                          order.phone_number,
+                          order.country_code,
+                        ) && (
                           <a
-                            href={getWhatsAppLink(order.phone_number, order.country_code)}
+                            href={getWhatsAppLink(
+                              order.phone_number,
+                              order.country_code,
+                            )}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full"

@@ -5,14 +5,23 @@ import { OrderTrackingResponse } from "@/types/dashboard/stats";
 export class DashboardService {
   private static baseURL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
-  static async getDashboardStats(id: number): Promise<OrderTrackingResponse> {
+  static async getDashboardStats(
+    id: number,
+    startDate?: string,
+    endDate?: string,
+  ): Promise<OrderTrackingResponse> {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("accessToken")
         : null;
 
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+    const query = params.toString() ? `?${params.toString()}` : "";
+
     const response = await fetch(
-      `${this.baseURL}/api/logistics/franchise/${id}/order-stats/`,
+      `${this.baseURL}/api/logistics/franchise/${id}/order-stats/${query}`,
       {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

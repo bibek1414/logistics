@@ -136,9 +136,9 @@ function AllOrdersPageContent() {
     }
   };
 
-  const handleVerifyOrder = async (orderCode: string) => {
+  const handleVerifyOrder = async (orderCode: string, deliveryLocationType: string) => {
     try {
-      await verifyOrderMutation.mutateAsync(orderCode);
+      await verifyOrderMutation.mutateAsync({ orderCode, deliveryLocationType });
     } catch (err) {
       throw err;
     }
