@@ -56,6 +56,7 @@ export interface SaleItem {
   comments: string | null;
   is_delivery_free?: boolean;
   is_rider_verified?: boolean;
+  status_change_comment?: string | null;
 }
 
 interface OrderProduct {

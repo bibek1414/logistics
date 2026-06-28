@@ -172,7 +172,7 @@ export function OrdersTable({
                   >
                     <SelectTrigger
                       className={`w-full h-8 text-xs font-medium ${getStatusColor(
-                        order.order_status
+                        order.order_status,
                       )}`}
                     >
                       <SelectValue placeholder="Select Status" />
@@ -260,8 +260,8 @@ export function OrdersTable({
                         order.order_status === "Sent to YDM"
                           ? "Verify order first"
                           : order.ydm_rider
-                          ? "Reassign Rider"
-                          : "Assign Rider"
+                            ? "Reassign Rider"
+                            : "Assign Rider"
                       }
                     />
                     <div className="flex items-center justify-center gap-2">
@@ -271,8 +271,8 @@ export function OrdersTable({
                         formatDate={formatDate}
                       />
 
-                      <EditOrderDialog 
-                        order={order} 
+                      <EditOrderDialog
+                        order={order}
                         disabled={order.order_status === "Sent to YDM"}
                       />
                     </div>

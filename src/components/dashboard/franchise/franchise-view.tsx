@@ -770,7 +770,12 @@ export default function FranchiseView({ id }: { id: number }) {
                   </td>
 
                   <td className="border border-gray-400 px-2 py-1.5 font-medium">
-                    {order.order_status}
+                    <div>{order.order_status}</div>
+                    {order.status_change_comment && (
+                      <div className="text-[10px] text-gray-600 font-normal italic mt-0.5">
+                        Comment: {order.status_change_comment}
+                      </div>
+                    )}
                   </td>
                 </tr>
               );
